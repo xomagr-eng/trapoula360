@@ -1,0 +1,16 @@
+{
+  "name": "ΤΡΑΠΟΥΛΑ 360° — Δάσκαλος Παιχνιδιών Τράπουλας",
+  "short_name": "ΤΡΑΠΟΥΛΑ 360°",
+  "description": "Δάσκαλος & προπονητής παιχνιδιών τράπουλας: κανόνες, στρατηγική, παιχνίδι vs AI, ασκήσεις και roadmap προόδου.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0f14",
+  "theme_color": "#0d0f14",
+  "lang": "el",
+  "categories": ["games", "education"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

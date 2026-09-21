@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0d0f14"/>
+  <g transform="translate(256 262) rotate(-12)">
+    <rect x="-150" y="-165" width="230" height="320" rx="26" fill="#f7f5ee" stroke="#cfc9b6" stroke-width="4" transform="rotate(-10)"/>
+  </g>
+  <g transform="translate(256 258) rotate(10)">
+    <rect x="-115" y="-160" width="230" height="320" rx="26" fill="#f7f5ee" stroke="#cfc9b6" stroke-width="4"/>
+    <text x="-88" y="-108" font-family="Georgia, serif" font-size="70" font-weight="bold" fill="#e2242b">A</text>
+    <text x="0" y="60" font-family="Georgia, serif" font-size="200" font-weight="bold" fill="#e2242b" text-anchor="middle">&#9829;</text>
+    <text x="90" y="150" font-family="Georgia, serif" font-size="70" font-weight="bold" fill="#e2242b" text-anchor="end" transform="rotate(180 90 130)">A</text>
+  </g>
+</svg>

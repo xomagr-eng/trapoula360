@@ -1,0 +1,2850 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d0f14">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.svg">
+<title>ΤΡΑΠΟΥΛΑ 360° — Δάσκαλος & Προπονητής Παιχνιδιών Τράπουλας</title>
+<style>
+:root{
+  --bg:#0d0f14; --bg2:#141821; --panel:#181d28; --panel2:#1f2533;
+  --line:#2a3140; --line2:#39424f;
+  --red:#e2242b; --red2:#ff3b41; --redlow:#3a1417;
+  --gold:#e8b23a; --txt:#f2f4f8; --mut:#9aa4b4; --mut2:#6b7686;
+  --felt:#2b1216; --felt2:#3a1519;
+  --ok:#4a9d5b; --warn:#e8a13a;
+  --card:#f7f5ee; --cardink:#1b1b1b; --cardred:#c8202a;
+  --radius:14px; --shadow:0 8px 28px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Segoe UI',system-ui,Roboto,Helvetica,Arial,sans-serif;
+  background:radial-gradient(1200px 600px at 50% -10%,#1a1f2b 0%,var(--bg) 60%);
+  color:var(--txt);min-height:100vh;line-height:1.5;font-size:15px;
+  padding-bottom:76px;
+}
+h1,h2,h3,h4{margin:.2em 0 .5em;line-height:1.2}
+a{color:var(--red2);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:16px}
+.hidden{display:none!important}
+
+/* Header */
+header{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg,rgba(13,15,20,.98),rgba(13,15,20,.82));
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+}
+.hbar{max-width:1080px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px}
+.logo .mark{
+  width:38px;height:38px;border-radius:10px;flex:0 0 auto;
+  background:linear-gradient(135deg,var(--red),#7a1216);
+  display:grid;place-items:center;font-size:20px;box-shadow:0 4px 14px rgba(226,36,43,.35)}
+.logo b{font-size:18px}
+.logo small{display:block;color:var(--mut);font-weight:500;font-size:11px;letter-spacing:.3px}
+.hspace{flex:1}
+.lvlchip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  padding:6px 12px;border-radius:999px;font-size:13px}
+.lvlchip b{color:var(--gold)}
+
+/* Nav */
+nav.bottom{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:linear-gradient(0deg,var(--bg) 60%,rgba(13,15,20,.9));
+  border-top:1px solid var(--line);display:flex;justify-content:center}
+nav.bottom .inner{display:flex;width:100%;max-width:1080px}
+nav.bottom button{
+  flex:1;background:none;border:none;color:var(--mut);padding:9px 4px 10px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;cursor:pointer;
+  border-top:2px solid transparent}
+nav.bottom button .ic{font-size:20px}
+nav.bottom button.active{color:var(--txt);border-top-color:var(--red)}
+nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
+
+/* Generic */
+.card,.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+@media(max-width:720px){.g2,.g3{grid-template-columns:1fr}}
+.btn{background:var(--panel2);color:var(--txt);border:1px solid var(--line2);border-radius:10px;
+  padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:.12s;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:var(--red);transform:translateY(-1px)}
+.btn:active{transform:translateY(0)}
+.btn.primary{background:linear-gradient(135deg,var(--red),#9c1418);border-color:var(--red2)}
+.btn.gold{background:linear-gradient(135deg,var(--gold),#b98718);border-color:var(--gold);color:#241a02}
+.btn.ghost{background:transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn.sm{padding:6px 12px;font-size:13px}
+.tag{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line2);color:var(--mut)}
+.tag.red{background:var(--redlow);border-color:var(--red);color:#ffb3b6}
+.tag.gold{background:#2a2408;border-color:var(--gold);color:var(--gold)}
+.sub{color:var(--mut);font-size:13px}
+.pill-row{display:flex;flex-wrap:wrap;gap:8px}
+.divider{height:1px;background:var(--line);margin:14px 0}
+.progress{height:9px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:999px;transition:width .5s}
+.section-title{display:flex;align-items:center;gap:10px;margin:22px 0 12px}
+.section-title h2{margin:0;font-size:20px}
+.section-title .line{flex:1;height:1px;background:var(--line)}
+
+/* Playing cards */
+.pc{
+  --w:64px;position:relative;width:var(--w);height:calc(var(--w)*1.45);
+  background:var(--card);color:var(--cardink);border-radius:8px;
+  border:1px solid #cfc9b6;box-shadow:0 3px 8px rgba(0,0,0,.4);
+  display:flex;flex-direction:column;justify-content:space-between;padding:5px 6px;
+  font-weight:800;user-select:none;flex:0 0 auto}
+.pc.red{color:var(--cardred)}
+.pc .r{font-size:calc(var(--w)*.32);line-height:1}
+.pc .s{font-size:calc(var(--w)*.30);text-align:right}
+.pc .mid{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--w)*.5);opacity:.9}
+.pc.back{background:repeating-linear-gradient(45deg,#7a1216,#7a1216 6px,#5c0d10 6px,#5c0d10 12px);
+  border-color:#8a1a1e;color:transparent}
+.pc.back::after{content:"♠";position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.18);font-size:calc(var(--w)*.7)}
+.pc.sel{outline:3px solid var(--gold);outline-offset:2px;transform:translateY(-10px)}
+.pc.dim{opacity:.45}
+.pc.mini{--w:40px}
+.pc.lg{--w:82px}
+.pc.clk{cursor:pointer;transition:transform .12s}
+.pc.clk:hover{transform:translateY(-6px)}
+
+.hand{display:flex;gap:6px;flex-wrap:wrap}
+.hand.tight{gap:-14px}
+.hand.tight .pc{margin-left:-18px}
+.hand.tight .pc:first-child{margin-left:0}
+
+/* Table */
+.felt{
+  background:radial-gradient(120% 120% at 50% 20%,var(--felt2),var(--felt) 70%);
+  border:2px solid #5a1c20;border-radius:20px;padding:18px;position:relative;
+  box-shadow:inset 0 0 60px rgba(0,0,0,.6)}
+.seat{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:10px 12px}
+.seat.turn{border-color:var(--gold);box-shadow:0 0 16px rgba(232,178,58,.35)}
+.seat.folded{opacity:.4}
+.seat .nm{font-weight:700;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.seat .stk{color:var(--gold);font-size:12px}
+.board-cards{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.pot{text-align:center;color:var(--gold);font-weight:800;letter-spacing:.5px}
+.chip{display:inline-block;background:#111;border:2px dashed var(--gold);color:var(--gold);
+  border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700}
+.log{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px;
+  height:120px;overflow:auto;font-size:12px;color:var(--mut);font-family:ui-monospace,Menlo,Consolas,monospace}
+.log div{padding:1px 0}
+.log b{color:var(--txt)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+input[type=range]{accent-color:var(--red)}
+
+/* Lesson reader */
+.lesson h3{color:var(--gold)}
+.lesson h4{color:var(--red2);margin-top:18px}
+.lesson ul{padding-left:20px}
+.lesson li{margin:4px 0}
+.callout{background:var(--panel2);border-left:3px solid var(--red);border-radius:8px;padding:10px 14px;margin:12px 0}
+.callout.gold{border-left-color:var(--gold)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:14px}
+.kv b{color:var(--gold)}
+table.rank{width:100%;border-collapse:collapse;font-size:14px}
+table.rank td,table.rank th{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left}
+table.rank th{color:var(--mut);font-weight:600}
+.badge-done{color:var(--ok);font-weight:700}
+
+/* Puzzle */
+.opt{width:100%;text-align:left;margin:6px 0}
+.opt.correct{border-color:var(--ok);background:rgba(74,157,91,.15)}
+.opt.wrong{border-color:var(--red);background:var(--redlow)}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+  background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:12px 18px;
+  box-shadow:var(--shadow);opacity:0;transition:.25s;z-index:100;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.good{border-color:var(--ok)}
+.toast.bad{border-color:var(--red)}
+
+.gamecard{cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.gamecard:hover{border-color:var(--red);transform:translateY(-3px)}
+.gamecard .ic{font-size:30px}
+.gamecard .meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.playable{position:absolute;top:10px;right:10px}
+.stat{text-align:center}
+.stat .n{font-size:26px;font-weight:800;color:var(--gold)}
+.stat .l{font-size:12px;color:var(--mut)}
+.chk{width:20px;height:20px;border-radius:6px;border:1px solid var(--line2);display:inline-grid;place-items:center;font-size:12px}
+.chk.on{background:var(--ok);border-color:var(--ok)}
+.roadstep{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.roadstep .dot{width:30px;height:30px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;
+  background:var(--panel2);border:2px solid var(--line2);font-weight:800;font-size:13px}
+.roadstep.done .dot{background:var(--ok);border-color:var(--ok)}
+.roadstep.cur .dot{border-color:var(--gold);color:var(--gold);box-shadow:0 0 12px rgba(232,178,58,.4)}
+
+/* Card flip / deal animation */
+@keyframes flipIn{0%{transform:rotateY(90deg) scale(.9);opacity:0}60%{opacity:1}100%{transform:rotateY(0) scale(1);opacity:1}}
+.pc.flip{animation:flipIn .34s cubic-bezier(.2,.7,.3,1) both}
+@keyframes dealIn{0%{transform:perspective(500px) rotateY(90deg) translateY(-10px);opacity:0}55%{opacity:1}100%{transform:perspective(500px) rotateY(0) translateY(0);opacity:1}}
+.pc.deal{animation:dealIn .34s ease both}
+
+/* Deck-back themes */
+body.back-blue .pc.back{background:repeating-linear-gradient(45deg,#123a7a,#123a7a 6px,#0d2a5c 6px,#0d2a5c 12px);border-color:#1c4a99}
+body.back-green .pc.back{background:repeating-linear-gradient(45deg,#0f5132,#0f5132 6px,#0b3d26 6px,#0b3d26 12px);border-color:#177346}
+body.back-gold .pc.back{background:repeating-linear-gradient(45deg,#8a6d12,#8a6d12 6px,#6b5410 6px,#6b5410 12px);border-color:#b3901f}
+body.back-purple .pc.back{background:repeating-linear-gradient(45deg,#4a1d6e,#4a1d6e 6px,#361452 6px,#361452 12px);border-color:#6b2ba0}
+body.back-plaid .pc.back{background:
+  repeating-linear-gradient(0deg,rgba(255,255,255,.12) 0 3px,transparent 3px 9px),
+  repeating-linear-gradient(90deg,#7a1216 0 3px,#5c0d10 3px 9px)}
+
+/* Felt themes */
+body.felt-blue{--felt:#0e2038;--felt2:#123055}
+body.felt-green{--felt:#0e3321;--felt2:#124a2e}
+body.felt-charcoal{--felt:#171a20;--felt2:#22262f}
+body.felt-purple{--felt:#241134;--felt2:#37194f}
+/* Accent themes */
+body.accent-gold{--red:#e0a21a;--red2:#ffc24a;--redlow:#332608}
+body.accent-cyan{--red:#159cc0;--red2:#3ec8e8;--redlow:#082a33}
+body.accent-purple{--red:#8b3fd6;--red2:#b06bff;--redlow:#1f0f33}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:grid;place-items:center;padding:16px}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:20px;max-width:460px;width:100%;box-shadow:var(--shadow);max-height:88vh;overflow:auto}
+.swatch{width:100%;height:44px;border-radius:8px;border:2px solid var(--line2);cursor:pointer;position:relative}
+.swatch.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.opt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;margin:8px 0 4px}
+.icon-btn{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:38px;height:38px;display:grid;place-items:center;cursor:pointer;font-size:18px}
+.icon-btn:hover{border-color:var(--red)}
+.bidgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+.trick-area{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:110px;align-items:center}
+.won-pile{font-size:12px;color:var(--gold)}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="logo">
+      <div class="mark">🃏</div>
+      <div><b>ΤΡΑΠΟΥΛΑ 360°</b><small>Δάσκαλος &amp; Προπονητής — γίνε επαγγελματίας</small></div>
+    </div>
+    <div class="hspace"></div>
+    <div class="lvlchip" id="lvlChip" title="Επίπεδο & πόντοι εμπειρίας">
+      <span>🎖️</span><span id="lvlName">Αρχάριος</span> · <b id="xpVal">0</b> XP
+    </div>
+    <div class="icon-btn" title="Ρυθμίσεις / Θέματα" onclick="openSettings()">⚙️</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ========== HOME ========== -->
+  <section id="view-home">
+    <div class="panel" style="background:linear-gradient(135deg,#1c1016,#141821);border-color:#3a1519">
+      <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px;align-items:center">
+        <div>
+          <h1 style="margin:0">Καλώς ήρθες, μελλοντικέ επαγγελματία 🎴</h1>
+          <p class="sub" style="max-width:560px">Μάθε κανόνες &amp; στρατηγική, παίξε εναντίον AI, λύσε ασκήσεις τακτικής και ανέβα επίπεδα — από <b>Αρχάριος</b> μέχρι <b style="color:var(--gold)">Επαγγελματίας</b>.</p>
+        </div>
+        <div style="text-align:center">
+          <div class="stat"><div class="n" id="homeLevel">1</div><div class="l">Επίπεδο</div></div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="grid g4">
+        <div class="stat"><div class="n" id="stLessons">0</div><div class="l">Μαθήματα</div></div>
+        <div class="stat"><div class="n" id="stPuzzles">0</div><div class="l">Ασκήσεις</div></div>
+        <div class="stat"><div class="n" id="stGames">0</div><div class="l">Παρτίδες</div></div>
+        <div class="stat"><div class="n" id="stWins">0</div><div class="l">Νίκες</div></div>
+      </div>
+    </div>
+
+    <div class="section-title"><h2>🗺️ Ο δρόμος προς το επαγγελματικό επίπεδο</h2><div class="line"></div></div>
+    <div class="panel" id="roadmapBox"></div>
+
+    <div class="section-title"><h2>⚡ Γρήγορη εκκίνηση</h2><div class="line"></div></div>
+    <div class="grid g3">
+      <div class="card gamecard" onclick="go('learn')"><div class="ic">📚</div><h3>Μάθε</h3><p class="sub">Κανόνες &amp; στρατηγική για κάθε παιχνίδι.</p></div>
+      <div class="card gamecard" onclick="go('play')"><div class="ic">🃏</div><h3>Παίξε vs AI</h3><p class="sub">Διαδραστικό τραπέζι με πλήρεις κανόνες.</p></div>
+      <div class="card gamecard" onclick="go('puzzle')"><div class="ic">🧩</div><h3>Προπονήσου</h3><p class="sub">Ασκήσεις τακτικής &amp; στρατηγικής.</p></div>
+    </div>
+  </section>
+
+  <!-- ========== LEARN (list) ========== -->
+  <section id="view-learn" class="hidden">
+    <div class="section-title"><h2>📚 Δάσκαλος — Επίλεξε παιχνίδι</h2><div class="line"></div></div>
+    <p class="sub">Κάθε οδηγός: <b>κανόνες</b>, <b>στρατηγική</b> και <b>συμβουλές επαγγελματία</b>. Ο πράσινος έλεγχος = ολοκληρωμένο μάθημα.</p>
+    <div class="grid g3" id="gameList"></div>
+  </section>
+
+  <!-- ========== LESSON (reader) ========== -->
+  <section id="view-lesson" class="hidden">
+    <button class="btn ghost sm" onclick="go('learn')">← Πίσω στα παιχνίδια</button>
+    <div class="lesson panel" id="lessonBody" style="margin-top:12px"></div>
+    <div style="display:flex;gap:10px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
+      <button class="btn" id="lessonPlayBtn"></button>
+      <button class="btn gold" id="lessonDoneBtn"></button>
+    </div>
+  </section>
+
+  <!-- ========== PLAY (lobby) ========== -->
+  <section id="view-play" class="hidden">
+    <div class="section-title"><h2>🃏 Τραπέζι — Παίξε εναντίον AI</h2><div class="line"></div></div>
+    <p class="sub">Πλήρως παίξιμα με τεχνητή νοημοσύνη αντιπάλου. Τα υπόλοιπα παιχνίδια έχουν αναλυτικό οδηγό στον <a onclick="go('learn')">Δάσκαλο</a>.</p>
+    <div class="grid g3" id="playList"></div>
+  </section>
+
+  <!-- ========== TABLE (active game) ========== -->
+  <section id="view-table" class="hidden">
+    <button class="btn ghost sm" onclick="quitGame()">← Έξοδος από το τραπέζι</button>
+    <div id="tableHost" style="margin-top:12px"></div>
+  </section>
+
+  <!-- ========== PUZZLES ========== -->
+  <section id="view-puzzle" class="hidden">
+    <div class="section-title"><h2>🧩 Ασκήσεις Τακτικής</h2><div class="line"></div></div>
+    <div class="pill-row" id="puzzleCats" style="margin-bottom:14px"></div>
+    <div id="puzzleHost"></div>
+  </section>
+
+  <!-- ========== PROGRESS ========== -->
+  <section id="view-progress" class="hidden">
+    <div class="section-title"><h2>📈 Η πρόοδός μου</h2><div class="line"></div></div>
+    <div class="panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div><h3 style="margin:0" id="pgLevelName">Αρχάριος</h3><span class="sub" id="pgLevelDesc"></span></div>
+        <div class="stat"><div class="n"><span id="pgXp">0</span></div><div class="l">συνολικά XP</div></div>
+      </div>
+      <div style="margin-top:12px" class="progress"><i id="pgBar" style="width:0%"></i></div>
+      <div class="sub" style="margin-top:6px" id="pgNext"></div>
+    </div>
+    <div class="section-title"><h2>🏆 Επιτεύγματα</h2><div class="line"></div></div>
+    <div class="grid g3" id="achBox"></div>
+    <div class="section-title"><h2>📊 Στατιστικά ανά παιχνίδι</h2><div class="line"></div></div>
+    <div class="panel" id="statTable"></div>
+    <div class="divider"></div>
+    <button class="btn ghost sm" onclick="resetAll()">🗑️ Μηδενισμός προόδου</button>
+  </section>
+</main>
+
+<nav class="bottom"><div class="inner">
+  <button data-v="home" class="active" onclick="go('home')"><span class="ic">🏠</span>Αρχική</button>
+  <button data-v="learn" onclick="go('learn')"><span class="ic">📚</span>Δάσκαλος</button>
+  <button data-v="play" onclick="go('play')"><span class="ic">🃏</span>Παίξε</button>
+  <button data-v="puzzle" onclick="go('puzzle')"><span class="ic">🧩</span>Ασκήσεις</button>
+  <button data-v="progress" onclick="go('progress')"><span class="ic">📈</span>Πρόοδος</button>
+</div></nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ΤΡΑΠΟΥΛΑ 360°  — offline card-game trainer
+   Ενότητες: State • Cards • Poker evaluator • Content
+             Roadmap • Router • Game engines • Puzzles
+   ============================================================ */
+
+/* ---------- STATE / PROGRESS ---------- */
+const LS='trapoula360_v1';
+const DEFAULT={xp:0, lessons:{}, puzzles:{}, ach:{}, games:{}, wins:{}, played:0, wins_total:0};
+let S=load();
+var AILEVEL=2, HG_SPEED=1;                 // 0=easy 1=normal 2=hard ; HG_SPEED flips-per-sec multiplier
+function aiRnd(){return [0.32,0.15,0.04][AILEVEL]!=null?[0.32,0.15,0.04][AILEVEL]:0.04;}  // prob of a suboptimal move
+function pokerIters(){return [90,220,460][AILEVEL]||460;}
+function load(){try{return Object.assign({},DEFAULT,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){return {...DEFAULT}}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function addXP(n,reason){S.xp+=n; save(); toast('+'+n+' XP · '+reason,'good'); refreshHeader(); checkAch();}
+
+const LEVELS=[
+ {min:0,name:'Αρχάριος',d:'Μαθαίνεις τους κανόνες.'},
+ {min:150,name:'Ερασιτέχνης',d:'Παίζεις σωστά τα βασικά.'},
+ {min:400,name:'Παίκτης',d:'Κατανοείς πιθανότητες & θέση.'},
+ {min:800,name:'Προχωρημένος',d:'Διαβάζεις αντιπάλους, στρατηγική.'},
+ {min:1400,name:'Ειδήμων',d:'Λαμβάνεις +EV αποφάσεις σταθερά.'},
+ {min:2200,name:'Επαγγελματίας',d:'Παίζεις σε επαγγελματικό επίπεδο! 🏆'}
+];
+function levelOf(xp){let l=LEVELS[0],i=0;LEVELS.forEach((L,ix)=>{if(xp>=L.min){l=L;i=ix}});return {...l,idx:i}}
+
+/* ---------- CARDS ---------- */
+const SUITS=['♠','♥','♦','♣'];
+const SUIT_RED=s=>s==='♥'||s==='♦';
+const RANKS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const RVAL={'2':2,'3':3,'4':4,'5':5,'6':6,'7':7,'8':8,'9':9,'10':10,'J':11,'Q':12,'K':13,'A':14};
+const RGREEK={'J':'Βαλές','Q':'Ντάμα','K':'Ρήγας','A':'Άσσος'};
+function makeDeck(ranks){ranks=ranks||RANKS;const d=[];for(const s of SUITS)for(const r of ranks)d.push({r,s});return d;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a;}
+let CARD_FX='';           // 'flip' or 'deal' — set before an animated render, engines reset it
+function fx(kind){CARD_FX=kind||'';}
+function cardEl(c,cls){
+  const fxc=CARD_FX?(' '+CARD_FX):'';
+  if(!c) return `<div class="pc back ${cls||''}${fxc}"></div>`;
+  if(c.joker) return `<div class="pc ${cls||''}${fxc}" style="color:#8b3fd6"><div class="r">★<br>JK</div><div class="mid">🃟</div><div class="s">★</div></div>`;
+  const red=SUIT_RED(c.s)?'red':'';
+  return `<div class="pc ${red} ${cls||''}${fxc}"><div class="r">${c.r}<br>${c.s}</div><div class="mid">${c.s}</div><div class="s">${c.s}</div></div>`;
+}
+function handHtml(cards,cls,opts){return cards.map((c,i)=>cardEl(c,(cls||'')+(opts&&opts.clk?' clk':''))).join('');}
+
+/* ---------- POKER HAND EVALUATOR (best 5 of up to 7) ---------- */
+const HAND_NAMES=['Ψηλό Φύλλο','Ζεύγος','Δύο Ζεύγη','Τριάδα','Κέντα','Χρώμα','Φουλ','Καρέ','Στρέιτ Φλος','Φλος Ρουαγιάλ'];
+function combos(arr,k){const res=[];(function go(start,acc){if(acc.length===k){res.push(acc.slice());return}for(let i=start;i<arr.length;i++){acc.push(arr[i]);go(i+1,acc);acc.pop();}})(0,[]);return res;}
+function eval5(cards){ // returns {cat, ranks:[...tiebreak], name}
+  const vs=cards.map(c=>RVAL[c.r]).sort((a,b)=>b-a);
+  const ss=cards.map(c=>c.s);
+  const flush=ss.every(s=>s===ss[0]);
+  // straight (with wheel A-2-3-4-5)
+  let uniq=[...new Set(vs)];
+  let straight=false, high=0;
+  if(uniq.length===5){
+    if(uniq[0]-uniq[4]===4){straight=true;high=uniq[0];}
+    else if(uniq[0]===14&&uniq[1]===5&&uniq[4]===2){straight=true;high=5;}
+  }
+  const counts={};vs.forEach(v=>counts[v]=(counts[v]||0)+1);
+  const groups=Object.entries(counts).map(([v,c])=>({v:+v,c})).sort((a,b)=>b.c-a.c||b.v-a.v);
+  let cat,tb;
+  if(straight&&flush){cat=high===14?9:8;tb=[high];}
+  else if(groups[0].c===4){cat=7;tb=[groups[0].v,groups[1].v];}
+  else if(groups[0].c===3&&groups[1].c===2){cat=6;tb=[groups[0].v,groups[1].v];}
+  else if(flush){cat=5;tb=vs;}
+  else if(straight){cat=4;tb=[high];}
+  else if(groups[0].c===3){cat=3;tb=[groups[0].v,...groups.slice(1).map(g=>g.v)];}
+  else if(groups[0].c===2&&groups[1].c===2){cat=2;tb=[groups[0].v,groups[1].v,groups[2].v];}
+  else if(groups[0].c===2){cat=1;tb=[groups[0].v,...groups.slice(1).map(g=>g.v)];}
+  else{cat=0;tb=vs;}
+  return {cat,ranks:tb,name:HAND_NAMES[cat]};
+}
+function cmpEval(a,b){if(a.cat!==b.cat)return a.cat-b.cat;for(let i=0;i<Math.max(a.ranks.length,b.ranks.length);i++){const x=a.ranks[i]||0,y=b.ranks[i]||0;if(x!==y)return x-y;}return 0;}
+function bestHand(cards){ // up to 7 cards
+  if(cards.length<=5) return eval5(cards);
+  let best=null;for(const c of combos(cards,5)){const e=eval5(c);if(!best||cmpEval(e,best)>0)best=e;}return best;
+}
+// crude preflop/hand strength 0..1 via quick monte carlo for hold'em decisions
+function equityHoldem(hole,board,opps,iters){
+  iters=iters||220;let win=0,tie=0;
+  const known=[...hole,...board];
+  for(let t=0;t<iters;t++){
+    let deck=makeDeck().filter(c=>!known.some(k=>k.r===c.r&&k.s===c.s));
+    shuffle(deck);let di=0;
+    const b=[...board];while(b.length<5)b.push(deck[di++]);
+    const mine=bestHand([...hole,...b]);
+    let better=0,same=0;
+    for(let o=0;o<opps;o++){const oh=[deck[di++],deck[di++]];const oe=bestHand([...oh,...b]);const c=cmpEval(oe,mine);if(c>0)better++;else if(c===0)same++;}
+    if(better===0){if(same===0)win++;else tie++;}
+  }
+  return (win+tie*0.5)/iters;
+}
+
+/* ---------- CONTENT: games + lessons ---------- */
+const GAMES=[
+ {id:'poker',name:'Πόκερ (Τέξας Χόλντεμ)',ic:'♠️',tags:['Στρατηγική','Μπλόφα','Διεθνές'],playable:true,
+  players:'2-9',deck:'52 φύλλα',
+  short:'Το κορυφαίο παιχνίδι στρατηγικής & μπλόφας.'},
+ {id:'poka',name:'Πόκα (5-Card Draw)',ic:'🂡',tags:['Ελληνικό','Μπλόφα'],playable:true,
+  players:'2-6',deck:'52 φύλλα',
+  short:'Η ελληνική «κλασική» πόκα με αλλαγή φύλλων.'},
+ {id:'xeri',name:'Ξερή',ic:'🃏',tags:['Ελληνικό','Γρήγορο'],playable:true,
+  players:'2-4',deck:'52 φύλλα',
+  short:'Μάζεμα φύλλων· ο Βαλές τα παίρνει όλα.'},
+ {id:'koumkan',name:'Κουμ Καν',ic:'🀄',tags:['Ελληνικό','Ραμί'],playable:true,
+  players:'2-6',deck:'2 τράπουλες + τζόκερ',
+  short:'Κατέβασε τριάδες & κέντες — άδειασε το χέρι σου.'},
+ {id:'bridge',name:'Μπριτζ (Mini-Bridge)',ic:'🌉',tags:['Διεθνές','Λεβέ','Ομάδες'],playable:true,
+  players:'4 (ζευγάρια)',deck:'52 φύλλα',
+  short:'Το βασιλικό παιχνίδι στρατηγικής & συνεργασίας.'},
+ {id:'thanasis',name:'Θανάσης',ic:'🎴',tags:['Ελληνικό','Ραμί'],playable:true,
+  players:'2+',deck:'1-2 τράπουλες',
+  short:'Παραλλαγή ραμιού: 2 τριάδες + μία τετράδα.'},
+ {id:'prefa',name:'Πρέφα',ic:'♣️',tags:['Ελληνικό','Λεβέ'],playable:true,
+  players:'3-4',deck:'32 φύλλα',
+  short:'Κλασικό παιχνίδι δηλώσεων & μπάζας.'},
+ {id:'diloti',name:'Δηλωτή',ic:'♦️',tags:['Ελληνικό','Μάζεμα'],playable:true,
+  players:'2-4',deck:'52 φύλλα',
+  short:'Συνδυασμός Ξερής & Κολιτσίνας με δηλώσεις.'},
+ {id:'biriba',name:'Μπιρίμπα',ic:'🃟',tags:['Ελληνικό','Ραμί'],playable:true,
+  players:'2-6',deck:'2 τράπουλες',
+  short:'Αγαπημένο ελληνικό ραμί με «κόκκο» & πανωλέ.'},
+ {id:'canasta',name:'Κανάστα',ic:'🌸',tags:['Διεθνές','Ραμί','Ομάδες'],playable:true,
+  players:'2-4',deck:'2 τράπουλες + τζόκερ',
+  short:'Σχημάτισε «κανάστες» των 7 φύλλων και κλείσε.'},
+ {id:'bourlot',name:'Μπουρλότ (Belote)',ic:'🔥',tags:['Ελληνικό','Λεβέ','Ομάδες'],playable:true,
+  players:'4 (ζευγάρια)',deck:'32 φύλλα',
+  short:'Στρατηγική & συνεργασία με ατού και δηλώσεις.'},
+ {id:'skambili',name:'Σκαμπίλι',ic:'🎴',tags:['Ελληνικό','Κρήτη','Λεβέ'],playable:true,
+  players:'4 παίκτες',deck:'32 φύλλα',
+  short:'Παλιό χωριάτικο παιχνίδι· το δυνατότερο φύλλο μαζεύει.'},
+ {id:'agonia',name:'Αγωνία',ic:'🎲',tags:['Ελληνικό','Οικογένεια'],playable:true,
+  players:'4 παίκτες',deck:'52 φύλλα',
+  short:'Σαν UNO με ειδικές κάρτες (7, 8, Άσσος…).'},
+ {id:'blofa',name:'Μπλόφα (Ψέμα)',ic:'🤥',tags:['Ελληνικό','Παρέα'],playable:true,
+  players:'4 παίκτες',deck:'52 φύλλα',
+  short:'Ξεφορτώσου φύλλα λέγοντας (ή όχι) αλήθεια.'},
+ {id:'pastra',name:'Πάστρα / Κολτσίνα',ic:'🧹',tags:['Ελληνικό','Μάζεμα'],playable:true,
+  players:'2-4',deck:'52 φύλλα',
+  short:'Μάζεμα φύλλων + «πάστρα» όταν καθαρίζεις το τραπέζι.'},
+ {id:'gaidaros',name:'Σκατά (Γάιδαρος)',ic:'🐴',tags:['Ελληνικό','Παρέα','Γρήγορο'],playable:true,
+  players:'4 παίκτες',deck:'16 φύλλα',
+  short:'Μάζεψε καρέ πρώτος — μη μείνεις «γάιδαρος»!'},
+ {id:'moutzouris',name:'Μουτζούρης',ic:'👵',tags:['Οικογένεια','Παρέα'],playable:true,
+  players:'2-4',deck:'51 φύλλα',
+  short:'Ξεφορτώσου ζευγάρια — μη μείνεις με το μονό φύλλο!'},
+ {id:'haligali',name:'Χάλι Γκάλι',ic:'🔔',tags:['Ταχύτητα','Παρέα'],playable:true,
+  players:'2-4',deck:'φρούτα',
+  short:'Χτύπα το καμπανάκι όταν φανούν 5 ίδια φρούτα!'},
+ {id:'phase10',name:'Phase 10',ic:'🔟',tags:['Διεθνές','Ραμί'],playable:true,
+  players:'2-6',deck:'108 φύλλα',
+  short:'Ολοκλήρωσε 10 φάσεις: σετ, κέντες & χρώματα.'}
+];
+
+// Lesson content builder (returns HTML)
+const LESSONS={
+ poker(){return `
+  <h3>♠️ Πόκερ — Τέξας Χόλντεμ</h3>
+  <p class="sub">Το πιο δημοφιλές παιχνίδι πόκερ στον κόσμο. Στόχος: να φτιάξεις την καλύτερη 5φυλλη «χεριά» ή να κάνεις τους άλλους να τα παρατήσουν (fold).</p>
+  <h4>Ροή της παρτίδας</h4>
+  <ul>
+   <li>Κάθε παίκτης παίρνει <b>2 κλειστά φύλλα</b> (hole cards).</li>
+   <li><b>Small blind / Big blind</b>: υποχρεωτικά ποντάρισμα από τους δύο αριστερά του dealer.</li>
+   <li><b>Preflop</b> γύρος στοιχηματισμού → <b>Flop</b> (3 κοινά φύλλα) → <b>Turn</b> (1) → <b>River</b> (1).</li>
+   <li>Χρησιμοποιείς οποιονδήποτε συνδυασμό από τα 2 δικά σου + 5 κοινά για την καλύτερη 5άδα.</li>
+  </ul>
+  <h4>Κινήσεις στοιχηματισμού</h4>
+  <div class="kv">
+   <b>Check (πάσο)</b><span>δεν ποντάρεις (αν κανείς δεν πόνταρε).</span>
+   <b>Bet / Raise</b><span>ποντάρεις / αυξάνεις.</span>
+   <b>Call (δες)</b><span>ταιριάζεις το ποντάρισμα.</span>
+   <b>Fold (φολ)</b><span>παρατάς τη χεριά.</span>
+  </div>
+  ${rankTable()}
+  <h4>🎯 Στρατηγική — τα θεμέλια</h4>
+  <div class="callout gold"><b>Θέση (position)</b> = δύναμη. Όσο αργότερα παίζεις στον γύρο, τόσο περισσότερη πληροφορία έχεις. Παίξε <b>tight</b> από νωρίς, <b>πιο ανοιχτά</b> από τη θέση του dealer.</div>
+  <ul>
+   <li><b>Starting hands:</b> τα καλύτερα ζευγάρια (AA, KK, QQ), AK, AQ. Πέτα τα αδύναμα (72, 83, χαμηλά offsuit).</li>
+   <li><b>Pot odds:</b> σύγκρινε το κόστος του call με το μέγεθος του πότ. Αν οι πιθανότητες να βελτιωθείς είναι καλύτερες από τα pot odds, κάνε call.</li>
+   <li><b>Aggression:</b> το bet/raise κερδίζει με δύο τρόπους (καλή χεριά ή fold αντιπάλου). Το call μόνο με έναν.</li>
+   <li><b>Μπλόφα με σχέδιο:</b> μπλόφαρε όταν η ιστορία «βγάζει νόημα» και έχεις outs (semi-bluff).</li>
+  </ul>
+  <div class="callout"><b>Κανόνας επαγγελματία:</b> Το πόκερ δεν είναι για τα φύλλα που κρατάς — είναι για τις <b>αποφάσεις +EV</b> που παίρνεις ξανά και ξανά. Στο μακροπρόθεσμο, η σωστή απόφαση κερδίζει.</div>
+  <h4>Bankroll & νοοτροπία</h4>
+  <ul><li>Παίξε με χρήματα που αντέχεις να χάσεις· διαχειρίσου το bankroll.</li>
+  <li>Αντιμετώπισε το <b>tilt</b> (θυμό μετά από κακή τύχη) — σταμάτα όταν δεν σκέφτεσαι καθαρά.</li></ul>`;},
+
+ poka(){return `
+  <h3>🂡 Πόκα (5-Card Draw)</h3>
+  <p class="sub">Η κλασική ελληνική πόκα. Κάθε παίκτης παίρνει 5 φύλλα, γίνεται γύρος ποντάρισμα, αλλαγή φύλλων και δεύτερος γύρος.</p>
+  <h4>Ροή</h4>
+  <ul>
+   <li>Ο dealer μοιράζει <b>5 φύλλα</b> κλειστά σε καθένα.</li>
+   <li><b>1ος γύρος στοιχήματος</b> (πριν την αλλαγή).</li>
+   <li><b>Αλλαγή:</b> κάθε παίκτης πετά όσα φύλλα θέλει και παίρνει νέα. «Σερβί» = δεν αλλάζεις (δείχνει δύναμη ή μπλόφα).</li>
+   <li><b>2ος γύρος στοιχήματος</b> → φανέρωμα (showdown).</li>
+  </ul>
+  ${rankTable()}
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Με ζευγάρι, κράτα το ζευγάρι + <b>3 φύλλα αλλαγή</b> (ή κράτα «kicker» άσσο για μπλόφα).</li>
+   <li>Με «τετράδα σε κέντα/χρώμα» (draw), αξιολόγησε αν αξίζει να κυνηγήσεις.</li>
+   <li>Πρόσεξε πόσα φύλλα αλλάζει ο αντίπαλος: <b>0 = δυνατό, 1 = ζευγάρι+kicker ή draw, 3 = μόνο ζευγάρι</b>.</li>
+   <li>Η <b>θέση</b> και εδώ μετράει — μίλα τελευταίος όποτε μπορείς.</li>
+  </ul>
+  <div class="callout gold"><b>Σημείωση:</b> Στην πόκα η σειρά ισχύος είναι ίδια με το πόκερ. Το «σερβί» χωρίς φύλλα είναι το πιο δυνατό ψυχολογικό εργαλείο — αλλά και το πιο ύποπτο.</div>`;},
+
+ xeri(){return `
+  <h3>🃏 Ξερή</h3>
+  <p class="sub">Γρήγορο ελληνικό παιχνίδι μαζέματος. Μαζεύεις φύλλα από το τραπέζι ταιριάζοντας αξία — και ο <b>Βαλές</b> μαζεύει τα πάντα.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Μοιράζονται <b>4 φύλλα</b> σε κάθε παίκτη και <b>4 ανοιχτά</b> στο τραπέζι (το τελευταίο κρυφό μέχρι το τέλος).</li>
+   <li>Στη σειρά σου ρίχνεις ένα φύλλο. Αν έχει ίδια αξία με το πάνω-πάνω του τραπεζιού, το <b>μαζεύεις</b>.</li>
+   <li>Ο <b>Βαλές (J)</b> μαζεύει όλα τα φύλλα του τραπεζιού, όποια κι αν είναι.</li>
+   <li><b>Ξερή!</b> Όταν μαζεύεις με ένα μόνο φύλλο πάνω στο τραπέζι (ταιριάζοντάς το): +10 πόντοι bonus.</li>
+   <li>Όταν τελειώσουν τα φύλλα του χεριού, μοιράζονται ξανά 4-4 μέχρι να αδειάσει η τράπουλα.</li>
+  </ul>
+  <h4>Βαθμολογία</h4>
+  <div class="kv">
+   <b>Άσσος</b><span>1 πόντος (×4)</span>
+   <b>Βαλές (J)</b><span>1 πόντος (×4)</span>
+   <b>10♦ (δεκάρι καρό)</b><span>2 πόντοι</span>
+   <b>2♣ (δυάρι σπαθί)</b><span>1 πόντος</span>
+   <b>Πλειοψηφία φύλλων</b><span>+3 (αν μαζέψεις 27+)</span>
+   <b>Ξερή</b><span>+10 η καθεμία</span>
+  </div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Κράτα τους <b>Βαλέδες</b> για όταν το τραπέζι έχει μαζευτεί πολλά φύλλα.</li>
+   <li>Απόφυγε να αφήνεις ένα μόνο φύλλο στο τραπέζι που ο αντίπαλος μπορεί να κάνει <b>Ξερή</b>.</li>
+   <li>Θυμήσου τι έχει παιχτεί — κράτα λογαριασμό για άσσους, δεκάρια, βαλέδες.</li>
+  </ul>`;},
+
+ koumkan(){return `
+  <h3>🀄 Κουμ Καν</h3>
+  <p class="sub">Ελληνικό ραμί, δημοφιλές από τις δεκαετίες '60–'70. Στόχος: κατέβασε <b>τριάδες</b> (ίδια φύλλα) και <b>κέντες</b> (σειρές ίδιου χρώματος) και άδειασε το χέρι σου.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Παίζεται με <b>2 τράπουλες + τζόκερ</b>. Μοιράζονται <b>10 φύλλα</b> ανά παίκτη.</li>
+   <li>Στη σειρά σου: <b>τραβάς</b> ένα φύλλο (από κλειστή στοίβα ή από τα «καμένα») και μετά <b>πετάς</b> ένα.</li>
+   <li><b>Τριάδα</b> = 3+ ίδιας αξίας. <b>Κέντα</b> = 3+ διαδοχικά ίδιου χρώματος (π.χ. 5♥6♥7♥).</li>
+   <li><b>Τζόκερ / Μπαλαντέρ:</b> αντικαθιστά οποιοδήποτε φύλλο (δηλώνεις ποιο είναι).</li>
+   <li>Κερδίζει όποιος <b>κατεβάσει όλα τα φύλλα</b> και «κάψει» το τελευταίο.</li>
+  </ul>
+  <h4>Βαθμολογία (ποινές για ό,τι μένει στο χέρι)</h4>
+  <div class="kv"><b>Φιγούρες</b><span>10 πόντοι</span><b>Τζόκερ</b><span>20 πόντοι</span><b>Υπόλοιπα</b><span>η αξία τους</span><b>Τέλος</b><span>χάνει όποιος φτάσει 100+</span></div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Κράτα φύλλα με <b>πολλές δυνατότητες</b> (π.χ. 7♥ ταιριάζει σε τριάδα 7 & σε κέντες κούπας).</li>
+   <li>Φύλαξε τον τζόκερ για να «κλείσεις» δύσκολο συνδυασμό — μην τον σπαταλάς νωρίς.</li>
+   <li>Πρόσεξε τι πετάει ο αντίπαλος: αποφεύγει να σου δώσει φύλλα που χρειάζεσαι.</li>
+   <li>Πέτα φύλλα υψηλής αξίας νωρίς αν δεν συνθέτουν κάτι — μειώνεις ρίσκο ποινής.</li>
+  </ul>`;},
+
+ thanasis(){return `
+  <h3>🎴 Θανάσης</h3>
+  <p class="sub">Παραλλαγή ραμιού. Στόχος: να κατεβάσεις πρώτος <b>δύο τριάδες και μία τετράδα</b> (σειρές ίδιου χρώματος ή ίδιες κάρτες).</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Μοιράζονται <b>10 φύλλα</b> σε κάθε παίκτη· η υπόλοιπη τράπουλα κλειστή με ένα ανοιχτό (καμένα).</li>
+   <li>Στη σειρά σου τραβάς ένα φύλλο και πετάς ένα.</li>
+   <li>Νικητής όποιος συμπληρώσει <b>2 τριάδες + 1 τετράδα</b> και τις κατεβάσει.</li>
+   <li>Οι υπόλοιποι μετρούν πόντους: αριθμοί όσο η αξία τους, φιγούρες = 10. Κερδίζει ο λιγότερος.</li>
+  </ul>
+  <div class="callout">Παρόμοιο με το Κουμ Καν — δοκίμασε πρώτα το <b>Κουμ Καν</b> στο τραπέζι για να εξασκηθείς στους ίδιους συνδυασμούς.</div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul><li>Στόχευσε ευέλικτα φύλλα, κράτα «γέφυρες» (φύλλα που δένουν δύο πιθανές σειρές).</li>
+  <li>Μείωσε την αξία στο χέρι σου σε περίπτωση που χάσεις.</li></ul>`;},
+
+ prefa(){return `
+  <h3>♣️ Πρέφα</h3>
+  <p class="sub">Κλασικό παιχνίδι «λεβέ» (μπάζας) με δηλώσεις, δημοφιλές στα καφενεία. Παίζεται με <b>3 παίκτες</b> (ο 4ος «τεμπέλης»), <b>32 φύλλα</b> (από 7 και πάνω).</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Μοιράζονται <b>10 φύλλα</b> σε καθένα (δύο-δύο) και μένουν <b>2 στον «μπάζο»</b>.</li>
+   <li><b>Δηλώσεις:</b> πρώτος μιλά ο δεξιά του μοιράστη. Δηλώνεις πόσες μπάζες αναλαμβάνεις και ποιο <b>ατού</b>, ή λες «Πάσο».</li>
+   <li>Σειρά χρωμάτων (ατού): <b>Μπαστούνι > Σπαθί > Καρό > Κούπα</b>.</li>
+   <li><b>Ακολουθία χρώματος:</b> πρέπει να ρίξεις το χρώμα που παίχτηκε πρώτο· αλλιώς ατού ή ξερό.</li>
+   <li>Ο δηλωτής προσπαθεί να κάνει τις μπάζες που υποσχέθηκε· οι άλλοι δύο συμμαχούν να τον «ρίξουν».</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Μέτρα τα ατού πριν δηλώσεις — μη δηλώνεις χωρίς έλεγχο (άσσοι/ρήγες + μακρύ ατού).</li>
+   <li>Ως αντίπαλος, «τράβα τα ατού» του δηλωτή και κράτα τους άσσους σου για τη σωστή στιγμή.</li>
+   <li>Θυμήσου τα φύλλα που έχουν πέσει — η μνήμη είναι το κλειδί στην πρέφα.</li>
+  </ul>
+  <div class="callout gold">Η πρέφα είναι από τα πιο τεχνικά ελληνικά παιχνίδια. Ξεκίνα διαβάζοντας δηλώσεις & μέτρημα ατού, και εξασκήσου με το μπριτζ-λογικής «λεβέ».</div>`;},
+
+ diloti(){return `
+  <h3>♦️ Δηλωτή</h3>
+  <p class="sub">Συνδυασμός <b>Ξερής</b> και <b>Κολιτσίνας</b>. Παίζεται με 2 ή 4 παίκτες (ζευγάρια). Στόχος: <b>61 πόντοι</b>.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Μοιράζονται <b>6 φύλλα</b> ανά παίκτη + <b>4 ανοιχτά</b> στο τραπέζι.</li>
+   <li>Μαζεύεις φύλλο ίδιας αξίας, ή <b>συνδυασμό που αθροίζει</b> σε αυτό (π.χ. 6 = Άσσος+2+3).</li>
+   <li><b>Δήλωση:</b> βάζεις ένα φύλλο «δηλώνοντας» μια αξία που θα μαζέψεις αργότερα (αν έχεις το φύλλο).</li>
+   <li><b>Ξερή</b> όταν μαζεύεις το/τα τελευταία φύλλα από κάτω: +10 πόντοι.</li>
+  </ul>
+  <h4>Βαθμολογία</h4>
+  <div class="kv"><b>Άσσος</b><span>1 (×4)</span><b>10♦</b><span>2</span><b>2♣</b><span>1</span><b>27+ φύλλα</b><span>+4</span><b>Ξερή</b><span>+10</span></div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul><li>Χρησιμοποίησε τις δηλώσεις για να «δεσμεύσεις» πόντους πριν σου τους πάρει ο αντίπαλος.</li>
+  <li>Κυνήγα τα φύλλα-πόντους (άσσοι, 10♦, 2♣) και τη πλειοψηφία φύλλων.</li></ul>`;},
+
+ biriba(){return `
+  <h3>🃟 Μπιρίμπα</h3>
+  <p class="sub">Ίσως το πιο αγαπημένο ελληνικό ραμί. Παίζεται συνήθως σε <b>ζευγάρια</b> με 2 τράπουλες + τζόκερ, δημιουργώντας τριάδες/κέντες.</p>
+  <h4>Κανόνες (συνοπτικά)</h4>
+  <ul>
+   <li>Μοιράζονται <b>11 φύλλα</b> ανά παίκτη· φτιάχνεται και ο <b>«κόκκος»</b> (κρυφή δεσμίδα 11 φύλλων) που παίρνεις όταν αδειάσεις το χέρι σου.</li>
+   <li>Φτιάχνεις <b>μανούλες</b> (καθαρές, χωρίς τζόκερ) και <b>κοινές</b> τριάδες/κέντες.</li>
+   <li><b>Πανωλέ / Μπιρίμπα:</b> σειρά 7 φύλλων = μεγάλο μπόνους.</li>
+   <li>Κλείσιμο όταν αδειάσεις το χέρι σου (αφού πάρεις τον κόκκο).</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul><li>Προτίμησε <b>καθαρές μανούλες</b> — μοιράζουν πολύ περισσότερους πόντους.</li>
+  <li>Συνεργάσου με τον παρτενέρ σου· πρόσεχε τι κατεβάζει.</li>
+  <li>Μην κλείσεις πρόωρα αν ο παρτενέρ έχει πολλά φύλλα στο χέρι.</li></ul>`;},
+
+ agonia(){return `
+  <h3>🎲 Αγωνία</h3>
+  <p class="sub">Οικογενειακό παιχνίδι, σαν UNO με κανονική τράπουλα & «ειδικές» κάρτες.</p>
+  <h4>Κανόνες (τυπική εκδοχή)</h4>
+  <ul>
+   <li>Μοιράζονται φύλλα· ρίχνεις πάνω σε ανοιχτό φύλλο ίδιου <b>χρώματος</b> ή ίδιας <b>αξίας</b>.</li>
+   <li><b>Ειδικά:</b> <b>7</b> = ο επόμενος τραβά 2 (σωρεύεται), <b>8</b> = χάνει σειρά, <b>Άσσος</b> = αλλαγή χρώματος, <b>Βαλές/9</b> = αλλαγή φοράς (ανά παρέα).</li>
+   <li>Νικητής όποιος αδειάσει πρώτος το χέρι του (φώναξε πριν το τελευταίο!).</li>
+  </ul>
+  <div class="callout">Οι κανόνες διαφέρουν ανά παρέα — συμφωνήστε τα «ειδικά» φύλλα στην αρχή.</div>`;},
+
+ blofa(){return `
+  <h3>🤥 Μπλόφα (Ψέμα / Cheat)</h3>
+  <p class="sub">Παιχνίδι εξαπάτησης. Στόχος: ξεφορτώσου όλα σου τα φύλλα — λέγοντας αλήθεια ή ψέματα.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Μοιράζεται όλη η τράπουλα. Παίζετε αξίες με τη σειρά (Άσσος, 2, 3…).</li>
+   <li>Στη σειρά σου ρίχνεις <b>κλειστά</b> 1+ φύλλα δηλώνοντας «δύο 7άρια» — μπορεί να λες ψέματα.</li>
+   <li>Οποιοσδήποτε φωνάζει <b>«Μπλόφα!»</b>: αν είχες πει ψέματα, παίρνεις όλη τη στοίβα· αν έλεγες αλήθεια, την παίρνει αυτός που σε αμφισβήτησε.</li>
+   <li>Νικητής όποιος αδειάσει πρώτος.</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul><li>Μπλόφαρε όταν έχεις «άλλοθι» (πολλά φύλλα κατεβασμένα).</li>
+  <li>Κράτα λίγα φύλλα εφεδρεία για να πεις αλήθεια όταν σε πιέζουν.</li>
+  <li>Παρατήρησε ποιος διστάζει — αυτοί μπλοφάρουν.</li></ul>`;},
+
+ bridge(){return `
+  <h3>🌉 Μπριτζ (Mini-Bridge)</h3>
+  <p class="sub">Το «βασιλικό» παιχνίδι στρατηγικής. Παίζεται από <b>4 παίκτες σε 2 ζευγάρια</b> (Βορράς–Νότος εναντίον Ανατολή–Δύση) που κάθονται αντικριστά. Εδώ μαθαίνεις το <b>Mini-Bridge</b>: την εκπαιδευτική εκδοχή που κρατά όλη την ουσία (συμβόλαιο, ντάμι, λεβέ) χωρίς τις πολύπλοκες αγορές.</p>
+  <h4>Στόχος</h4>
+  <p>Κάθε ζευγάρι συνεργάζεται για να κερδίσει <b>λεβέ (μπάζες)</b>. Το ζευγάρι που αναλαμβάνει το «συμβόλαιο» πρέπει να κάνει τον αριθμό των λεβέ που υποσχέθηκε.</p>
+  <h4>Πόντοι Τιμής (HCP)</h4>
+  <div class="kv"><b>Άσσος</b><span>4 πόντοι</span><b>Ρήγας</b><span>3</span><b>Ντάμα</b><span>2</span><b>Βαλές</b><span>1</span></div>
+  <p class="sub">Σύνολο στην τράπουλα: 40 HCP. Μέτρα τους δικούς σου για να ξέρεις πόσο δυνατό είναι το χέρι σου.</p>
+  <h4>Ροή (Mini-Bridge)</h4>
+  <ul>
+   <li>Μοιράζονται <b>13 φύλλα</b> σε καθέναν.</li>
+   <li>Όλοι <b>ανακοινώνουν τους HCP</b> τους. Το ζευγάρι με τους περισσότερους συνολικά γίνεται η «<b>επιτιθέμενη</b>» πλευρά.</li>
+   <li>Ο παίκτης με τους περισσότερους πόντους στο νικητήριο ζευγάρι γίνεται <b>εκτελεστής (declarer)</b> και επιλέγει <b>ατού</b> (ή <b>Άτου = NT</b>) και <b>επίπεδο</b>.</li>
+   <li>Ο συμπαίκτης του γίνεται <b>ντάμι (dummy)</b>: κατεβάζει τα φύλλα του ανοιχτά και τα παίζει ο εκτελεστής.</li>
+   <li>Παίζονται <b>13 λεβέ</b>: ακολουθείς το χρώμα που παίχτηκε· αν δεν έχεις, ρίχνεις ατού ή ό,τι θες. Το ατού κερδίζει· αλλιώς το ψηλότερο του χρώματος.</li>
+  </ul>
+  <h4>Συμβόλαιο & στόχος λεβέ</h4>
+  <p>Το επίπεδο + 6 = λεβέ που χρειάζεσαι. Π.χ. συμβόλαιο «4 Κούπες» = 10 λεβέ με ατού Κούπα. Κατευθυντήριες βάσει συνολικών HCP:</p>
+  <div class="kv"><b>0–24</b><span>μερικό (part-score) — χαμηλό επίπεδο</span><b>25–32</b><span>μανς (game): 4♥/♠, 3ΧΑ, 5♣/♦</span><b>33+</b><span>σλεμ — τολμηρό!</span></div>
+  ${rankTable().replace('Κατάταξη χεριών','Σειρά χρωμάτων & δύναμη (για αναφορά)')}
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li><b>Μακριά χρώματα = δύναμη.</b> Ένα χρώμα 5+ φύλλων παράγει λεβέ ακόμη κι από μικρά φύλλα.</li>
+   <li>Ως εκτελεστής, <b>«τράβα τα ατού»</b> των αντιπάλων νωρίς για να μη σου κόβουν.</li>
+   <li>Ως αμυνόμενος, <b>άνοιγμα (opening lead):</b> βγες συνήθως από το μακρύτερο/δυνατότερο χρώμα σου.</li>
+   <li><b>Μέτρα τα φύλλα</b> κάθε χρώματος — η μνήμη κερδίζει το μπριτζ.</li>
+   <li>Συνεργάσου νοερά με τον παρτενέρ σου: κάθε φύλλο που ρίχνει «λέει» κάτι.</li>
+  </ul>
+  <div class="callout gold"><b>Επόμενο βήμα:</b> Αφού νιώσεις άνετα με το Mini-Bridge, το κανονικό μπριτζ προσθέτει τις «αγορές» (bidding) — μια γλώσσα επικοινωνίας με τον παρτενέρ σου. Είναι το βαθύτερο παιχνίδι τράπουλας που υπάρχει.</div>`;},
+
+ bourlot(){return `
+  <h3>🔥 Μπουρλότ (Belote)</h3>
+  <p class="sub">Το ελληνικό όνομα του γαλλικού <b>Belote</b> — κορυφαίο παιχνίδι στρατηγικής &amp; συνεργασίας των καφενείων. Παίζεται από <b>4 παίκτες σε 2 ομάδες</b> (αντικριστά), με <b>32 φύλλα</b> (7 έως Άσσος).</p>
+  <h4>Μοίρασμα &amp; αγορά ατού</h4>
+  <ul>
+   <li>Μοιράζονται <b>8 φύλλα</b> σε καθέναν (3+2, μετά 3). Γυρίζεται ένα φύλλο που προτείνει το πρώτο ατού.</li>
+   <li>Οι παίκτες με τη σειρά <b>αγοράζουν</b> (δηλώνουν ατού) ή περνούν. Η ομάδα που αγόρασε αναλαμβάνει να βγάλει τους μισούς+1 πόντους.</li>
+  </ul>
+  <h4>Σειρά ισχύος φύλλων</h4>
+  <div class="kv">
+   <b>Στο ατού (κόζι)</b><span>J &gt; 9 &gt; A &gt; 10 &gt; K &gt; Q &gt; 8 &gt; 7</span>
+   <b>Στα άλλα χρώματα</b><span>A &gt; 10 &gt; K &gt; Q &gt; J &gt; 9 &gt; 8 &gt; 7</span>
+  </div>
+  <h4>Αξίες πόντων</h4>
+  <table class="rank"><tr><th>Φύλλο</th><th>Στο ατού</th><th>Αλλού</th></tr>
+   <tr><td>J (Βαλές)</td><td><b>20</b></td><td>2</td></tr>
+   <tr><td>9 (εννιάρι)</td><td><b>14</b></td><td>0</td></tr>
+   <tr><td>A (Άσσος)</td><td>11</td><td>11</td></tr>
+   <tr><td>10 (δεκάρι)</td><td>10</td><td>10</td></tr>
+   <tr><td>K (Ρήγας)</td><td>4</td><td>4</td></tr>
+   <tr><td>Q (Ντάμα)</td><td>3</td><td>3</td></tr>
+   <tr><td>8, 7</td><td>0</td><td>0</td></tr></table>
+  <p class="sub">Τα φύλλα αθροίζουν <b>152 πόντους</b> + <b>10</b> για την τελευταία μπάζα = <b>162</b> ανά παρτίδα.</p>
+  <h4>Δηλώσεις (αέρας)</h4>
+  <ul>
+   <li><b>Μπελότ–Ρεμπελότ:</b> Ντάμα + Ρήγας ατού στο ίδιο χέρι = <b>+20</b> (δηλώνεται όταν παίζονται).</li>
+   <li><b>Τερτσέτο</b> (3 συνεχόμενα ίδιου χρώματος) = +20 · <b>4άρι</b> = +50 · <b>5+</b> = +100.</li>
+   <li><b>Καρέ</b> (4 όμοια): 10/K/Q/A = +100 · <b>9άρια = +150</b> · <b>Βαλέδες = +200</b>.</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Μη «σηκώνεις» (αγοράζεις) χωρίς J ή 9 ατού + στήριγμα — είναι τα φύλλα-κλειδιά.</li>
+   <li>Συνεργάσου: αν ο παρτενέρ κερδίζει τη μπάζα, «φόρτωσέ» την με πόντους (10, A).</li>
+   <li>Θυμήσου ποια ατού έχουν πέσει — μέτρα τα «κόζια».</li>
+   <li>Δήλωσε σωστά (μπελότ, τερτσέτα) — οι δηλώσεις κρίνουν συχνά την παρτίδα.</li>
+  </ul>
+  <div class="callout gold">Το Μπουρλότ (και οι συγγενείς του: <b>Βίδα</b>, <b>Πιλόττα</b> στην Κύπρο) είναι από τα πιο τεχνικά παιχνίδια. Ξεκίνα μαθαίνοντας απ' έξω τη σειρά ισχύος &amp; τις αξίες.</div>`;},
+
+ canasta(){return `
+  <h3>🌸 Κανάστα (Canasta)</h3>
+  <p class="sub">Παιχνίδι της οικογένειας του <b>ραμιού</b>, λατρεμένο στα σαλόνια των δεκαετιών '50–'70. Παίζεται με <b>2 τράπουλες + 4 τζόκερ</b> (108 φύλλα), συνήθως 4 παίκτες σε ζευγάρια. Στόχος: σχηματίζεις «ενώσεις» (melds) και <b>κανάστες</b> και μαζεύεις πόντους ως τους <b>5000</b>.</p>
+  <h4>Βασικά</h4>
+  <ul>
+   <li>Μοιράζονται <b>11 φύλλα</b> ανά παίκτη (13 στους 2 παίκτες).</li>
+   <li>Στη σειρά σου <b>τραβάς</b> φύλλο και <b>πετάς</b> ένα· κατεβάζεις ενώσεις 3+ φύλλων ίδιας αξίας.</li>
+   <li><b>Μπαλαντέρ (wild):</b> τα τζόκερ ΚΑΙ όλα τα <b>2</b>. Μια ένωση δεν μπορεί να έχει πάνω από 3 μπαλαντέρ.</li>
+   <li><b>Κανάστα</b> = ένωση <b>7 φύλλων</b>. Χρειάζεσαι τουλάχιστον μία κανάστα για να «κλείσεις».</li>
+  </ul>
+  <h4>Βαθμολογία</h4>
+  <div class="kv">
+   <b>Καθαρή κανάστα</b><span>(χωρίς μπαλαντέρ) = 500</span>
+   <b>Μικτή κανάστα</b><span>(με μπαλαντέρ) = 300</span>
+   <b>Τζόκερ</b><span>50 · <b>2 &amp; Άσσος</b> 20</span>
+   <b>K–8</b><span>10 · <b>7–4 &amp; μαύρα 3</b> 5</span>
+   <b>Κόκκινα 3 (♥/♦)</b><span>μπόνους 100 το καθένα (500 και τα 4)</span>
+  </div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Κυνήγα <b>καθαρές κανάστες</b> — αξίζουν πολύ περισσότερο.</li>
+   <li>Φύλαγε μπαλαντέρ &amp; 2 για να «κλείσεις» δύσκολες κανάστες.</li>
+   <li>Πρόσεχε τα <b>κόκκινα 3</b>: κατέβασέ τα (δίνουν μπόνους, αλλά προσοχή στην ποινή αν μείνουν).</li>
+   <li>Μη «κλείνεις» πρόωρα — βεβαιώσου ότι έχεις κανάστα &amp; ότι ο παρτενέρ είναι έτοιμος.</li>
+  </ul>
+  <div class="callout"><b>Στο τραπέζι:</b> η παίξιμη εκδοχή εδώ είναι <b>απλοποιημένη</b> (μονός παίκτης εναντίον AI, «τράβα–πέτα» και σχημάτισε όλες σου τις ενώσεις για να κλείσεις) — ιδανική για να εξοικειωθείς με τις ενώσεις &amp; τους μπαλαντέρ.</div>`;},
+
+ skambili(){return `
+  <h3>🎴 Σκαμπίλι</h3>
+  <p class="sub">Ένα από τα πιο παλιά &amp; αγαπημένα χωριάτικα παιχνίδια (ιδίως στην <b>Κρήτη</b>), που παιζόταν γύρω από τη σόμπα ή το τζάκι τις χειμωνιάτικες νύχτες. Ανήκει στην οικογένεια των παιχνιδιών «λεβέ/μπάζας» (γαλλικής προέλευσης — Brusquembille).</p>
+  <h4>Κανόνες (τυπική εκδοχή)</h4>
+  <ul>
+   <li>Παίζεται με μέρος της τράπουλας — συνήθως <b>28–40 φύλλα</b> (αφαιρούνται χαμηλά φύλλα). Για 3 παίκτες αφαιρούνται τα τέσσερα 6.</li>
+   <li>Σε κάθε γύρο (χεριά) κάθε παίκτης ρίχνει <b>ένα φύλλο</b>· το <b>δυνατότερο φύλλο του χρώματος</b> που παίχτηκε <b>μαζεύει</b> όλα τα φύλλα (μπάζα).</li>
+   <li>Όποιος μαζεύει τη μπάζα παίζει πρώτος στην επόμενη.</li>
+   <li>Τα φύλλα που μάζεψες μετρούν <b>πόντους</b>: κυρίως <b>Άσσοι &amp; φιγούρες</b> (η ακριβής αξία ποικίλλει ανά περιοχή).</li>
+  </ul>
+  <div class="callout">⚠️ <b>Τοπικές παραλλαγές:</b> το Σκαμπίλι έχει πολλές εκδοχές ανά χωριό (αριθμός φύλλων, αξίες πόντων, ύπαρξη «ατού»). Συμφωνήστε τους κανόνες πριν ξεκινήσετε.</div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li><b>Μνήμη:</b> κράτα λογαριασμό ποια δυνατά φύλλα (Άσσοι, φιγούρες) έχουν πέσει.</li>
+   <li>Κράτα τα ψηλά σου φύλλα για να μαζέψεις μπάζες με πόντους, όχι άδειες.</li>
+   <li>«Ξεφορτώσου» αδύναμα φύλλα όταν η μπάζα δεν έχει αξία.</li>
+  </ul>`;},
+
+ pastra(){return `
+  <h3>🧹 Πάστρα / Κολτσίνα (Κοντσίνα)</h3>
+  <p class="sub">Ένα από τα πιο παλιά &amp; απλά ελληνικά παιχνίδια — μαθαίνει και τα παιδιά να προσθέτουν! Στόχος: να <b>μαζέψεις όσο περισσότερα φύλλα</b> γίνεται από το τραπέζι.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>2 ή 4 παίκτες, 52 φύλλα. Μοιράζονται <b>4 φύλλα</b> σε καθέναν &amp; <b>4 ανοιχτά</b> στο τραπέζι.</li>
+   <li>Στη σειρά σου <b>μαζεύεις</b> φύλλο <b>ίδιας αξίας</b> ή <b>συνδυασμό που αθροίζει</b> σε αυτό (π.χ. 7 = 4+3).</li>
+   <li>Οι <b>φιγούρες (J/Q/K)</b> μαζεύονται μόνο με ίδια φιγούρα (δεν αθροίζονται).</li>
+   <li>Αν δεν μπορείς να μαζέψεις, <b>ρίχνεις</b> ένα φύλλο ανοιχτό.</li>
+   <li>Όταν τελειώσουν τα 4 φύλλα, μοιράζονται ξανά 4-4 μέχρι να αδειάσει η τράπουλα.</li>
+  </ul>
+  <div class="callout gold"><b>ΠΑΣΤΡΑ (σκούπα):</b> όταν μαζεύεις <b>όλα</b> τα φύλλα του τραπεζιού με μία κίνηση, κάνεις «πάστρα» = <b>+1 πόντος bonus</b>.</div>
+  <h4>Βαθμολογία (εκδοχή «Πάστρα»)</h4>
+  <div class="kv"><b>Πάνω από 26 φύλλα</b><span>3 πόντοι</span><b>Κάθε Άσσος</b><span>1</span><b>Κάθε Βαλές</b><span>1</span><b>2 Σπαθί</b><span>2</span><b>10 Καρό</b><span>3</span><b>Κάθε πάστρα</b><span>+1</span></div>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Κυνήγα τα φύλλα-πόντους: Άσσους, Βαλέδες, <b>10♦</b> &amp; <b>2♣</b>.</li>
+   <li>Πρόσεχε να μην αφήνεις στο τραπέζι φύλλα που δίνουν εύκολη <b>πάστρα</b> στον αντίπαλο.</li>
+   <li>Θυμήσου: η <b>Δηλωτή</b> είναι η «εξέλιξη» της Κολτσίνας — ίδιο μάζεμα με δηλώσεις.</li>
+  </ul>`;},
+
+ gaidaros(){return `
+  <h3>🐴 Σκατά (Γάιδαρος)</h3>
+  <p class="sub">Γρήγορο, ξεκαρδιστικό οικογενειακό παιχνίδι αντανακλαστικών. Στόχος: να μαζέψεις <b>καρέ (4 όμοια)</b> πρώτος — για να μη μείνεις ο «γάιδαρος»!</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Παίρνουμε τόσες τετράδες όσοι οι παίκτες (π.χ. 4 παίκτες → 4×4 = 16 φύλλα). Μοιράζονται <b>4 φύλλα</b> σε καθέναν.</li>
+   <li>Ταυτόχρονα, κάθε παίκτης <b>δίνει ένα φύλλο</b> στον διπλανό του (αριστερά) και <b>παίρνει ένα</b> από τον άλλον διπλανό.</li>
+   <li>Συνεχίζεται γρήγορα μέχρι κάποιος να μαζέψει <b>4 όμοια</b> — αυτός βγαίνει (σώζεται).</li>
+   <li>Ο <b>τελευταίος</b> που δεν έκανε καρέ είναι ο «γάιδαρος» (μαζεύει ένα γράμμα: Σ-Κ-Α-Τ-Α).</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Αποφάσισε νωρίς <b>ποια τετράδα</b> θα κυνηγήσεις (αυτή που ήδη έχεις τα περισσότερα).</li>
+   <li>Δίνε πάντα το πιο «άχρηστο» φύλλο σου (μονό, εκτός στόχου).</li>
+   <li>Ταχύτητα &amp; προσοχή: μόλις κάνεις καρέ, σταμάτα να δίνεις!</li>
+  </ul>`;},
+
+ moutzouris(){return `
+  <h3>👵 Μουτζούρης (Old Maid)</h3>
+  <p class="sub">Κλασικό οικογενειακό παιχνίδι. Στόχος: να ξεφορτωθείς όλα τα ζευγάρια σου και να <b>μη μείνεις με το μοναδικό «μονό» φύλλο</b> — τον μουτζούρη!</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Αφαιρούμε ένα φύλλο (π.χ. μία Ντάμα) ώστε να υπάρχει ένα <b>μονό φύλλο χωρίς ταίρι</b> (ο «μουτζούρης»).</li>
+   <li>Μοιράζονται όλα τα φύλλα. Κάθε παίκτης <b>πετάει αμέσως τα ζευγάρια</b> (ίδιας αξίας) που έχει.</li>
+   <li>Στη σειρά του, ο κάθε παίκτης <b>τραβά κρυφά ένα φύλλο</b> από τον διπλανό του. Αν σχηματίσει ζευγάρι, το πετάει.</li>
+   <li>Όποιος αδειάσει τα φύλλα του βγαίνει. <b>Χάνει</b> όποιος μείνει στο τέλος με το μονό φύλλο (μουτζούρης).</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Μόλις τραβήξεις φύλλο, τσέκαρε για ζευγάρι &amp; πέτα το.</li>
+   <li>Δεν υπάρχει μεγάλη στρατηγική — είναι παιχνίδι τύχης &amp; ψυχολογίας (μπλόφα στο ποιο φύλλο κρατάς).</li>
+  </ul>`;},
+
+ haligali(){return `
+  <h3>🔔 Χάλι Γκάλι (Halli Galli)</h3>
+  <p class="sub">Παιχνίδι ταχύτητας &amp; αντανακλαστικών με φρούτα και καμπανάκι! Στόχος: να μαζέψεις όλες τις κάρτες.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Οι κάρτες δείχνουν <b>φρούτα σε ποσότητες 1–5</b> (🍓 φράουλα, 🍌 μπανάνα, 🍋 λεμόνι, 🥝 ακτινίδιο).</li>
+   <li>Κάθε παίκτης γυρίζει με τη σειρά μία κάρτα ανοιχτή στη στοίβα του.</li>
+   <li>Μόλις εμφανιστούν συνολικά <b>ακριβώς 5 ίδια φρούτα</b> στις ανοιχτές κάρτες → <b>χτύπα το καμπανάκι!</b> 🔔</li>
+   <li>Ο πρώτος που χτυπά σωστά <b>μαζεύει όλες</b> τις ανοιχτές κάρτες. Λάθος χτύπημα = <b>ποινή</b> (δίνεις κάρτες).</li>
+   <li>Όποιος μείνει χωρίς κάρτες βγαίνει· νικάει όποιος τις μαζέψει όλες.</li>
+  </ul>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Μέτρα γρήγορα το <b>σύνολο ανά φρούτο</b> — μόνο το 5 (ακριβώς) μετράει!</li>
+   <li>Πρόσεχε: όχι 4, όχι 6 — <b>ακριβώς 5</b>. Λάθος χτύπημα σε κοστίζει.</li>
+  </ul>`;},
+
+ phase10(){return `
+  <h3>🔟 Phase 10</h3>
+  <p class="sub">Δημοφιλές αμερικανικό παιχνίδι (τύπου ραμιού). Στόχος: να είσαι ο <b>πρώτος που ολοκληρώνει και τις 10 φάσεις</b> με τη σειρά.</p>
+  <h4>Κανόνες</h4>
+  <ul>
+   <li>Τράπουλα με αριθμούς <b>1–12 σε 4 χρώματα</b> + μπαλαντέρ (wild) + Skip. Μοιράζονται <b>10 φύλλα</b>.</li>
+   <li>Στη σειρά σου <b>τραβάς</b> (κλειστή στοίβα ή καμένα) &amp; <b>πετάς</b> ένα φύλλο.</li>
+   <li>Όταν το χέρι σου καλύπτει την <b>τρέχουσα φάση</b>, την «κατεβάζεις» &amp; προχωράς στην επόμενη.</li>
+   <li>Ο μπαλαντέρ αντικαθιστά οποιοδήποτε φύλλο.</li>
+  </ul>
+  <h4>Οι 10 Φάσεις</h4>
+  <table class="rank"><tr><th>#</th><th>Απαίτηση</th></tr>
+   <tr><td>1</td><td>2 σετ των 3</td></tr>
+   <tr><td>2</td><td>1 σετ των 3 + 1 κέντα των 4</td></tr>
+   <tr><td>3</td><td>1 σετ των 4 + 1 κέντα των 4</td></tr>
+   <tr><td>4</td><td>1 κέντα των 7</td></tr>
+   <tr><td>5</td><td>1 κέντα των 8</td></tr>
+   <tr><td>6</td><td>1 κέντα των 9</td></tr>
+   <tr><td>7</td><td>2 σετ των 4</td></tr>
+   <tr><td>8</td><td>7 φύλλα ίδιου χρώματος</td></tr>
+   <tr><td>9</td><td>1 σετ των 5 + 1 σετ των 2</td></tr>
+   <tr><td>10</td><td>1 σετ των 5 + 1 σετ των 3</td></tr></table>
+  <p class="sub"><b>Σετ</b> = ίδιοι αριθμοί. <b>Κέντα</b> = διαδοχικοί αριθμοί (το χρώμα δεν μετράει, εκτός της φάσης 8).</p>
+  <h4>🎯 Στρατηγική</h4>
+  <ul>
+   <li>Κράτα φύλλα που εξυπηρετούν την <b>τρέχουσα</b> φάση — πέτα τα άσχετα.</li>
+   <li>Φύλαξε τους <b>μπαλαντέρ</b> για να «κλείσεις» δύσκολες κέντες/σετ.</li>
+   <li>Πρόσεχε τι πετάς — μη δίνεις στους αντιπάλους αυτό που χρειάζονται.</li>
+  </ul>`;}
+};
+function rankTable(){
+  return `<h4>Κατάταξη χεριών (από ισχυρό σε αδύναμο)</h4>
+  <table class="rank"><tr><th>#</th><th>Χεριά</th><th>Περιγραφή</th></tr>
+  <tr><td>1</td><td>Φλος Ρουαγιάλ</td><td>10-J-Q-K-A ίδιου χρώματος</td></tr>
+  <tr><td>2</td><td>Στρέιτ Φλος</td><td>5 διαδοχικά ίδιου χρώματος</td></tr>
+  <tr><td>3</td><td>Καρέ</td><td>4 ίδιας αξίας</td></tr>
+  <tr><td>4</td><td>Φουλ</td><td>Τριάδα + Ζεύγος</td></tr>
+  <tr><td>5</td><td>Χρώμα (Φλος)</td><td>5 ίδιου χρώματος</td></tr>
+  <tr><td>6</td><td>Κέντα (Στρέιτ)</td><td>5 διαδοχικά</td></tr>
+  <tr><td>7</td><td>Τριάδα</td><td>3 ίδιας αξίας</td></tr>
+  <tr><td>8</td><td>Δύο Ζεύγη</td><td>δύο διαφορετικά ζευγάρια</td></tr>
+  <tr><td>9</td><td>Ζεύγος</td><td>2 ίδιας αξίας</td></tr>
+  <tr><td>10</td><td>Ψηλό Φύλλο</td><td>κανένας συνδυασμός</td></tr>
+  </table>`;
+}
+
+/* ---------- ROUTER ---------- */
+const VIEWS=['home','learn','lesson','play','table','puzzle','progress'];
+let curGameId=null;
+function go(v){
+  VIEWS.forEach(x=>document.getElementById('view-'+x).classList.toggle('hidden',x!==v));
+  document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
+  window.scrollTo(0,0);
+  if(v==='home')renderHome();
+  if(v==='learn')renderGameList();
+  if(v==='play')renderPlayList();
+  if(v==='puzzle')renderPuzzles();
+  if(v==='progress')renderProgress();
+}
+function refreshHeader(){
+  const L=levelOf(S.xp);
+  document.getElementById('lvlName').textContent=L.name;
+  document.getElementById('xpVal').textContent=S.xp;
+}
+
+/* ---------- HOME ---------- */
+function renderHome(){
+  refreshHeader();
+  const L=levelOf(S.xp);
+  document.getElementById('homeLevel').textContent=L.idx+1;
+  document.getElementById('stLessons').textContent=Object.keys(S.lessons).length;
+  document.getElementById('stPuzzles').textContent=Object.values(S.puzzles).filter(Boolean).length;
+  document.getElementById('stGames').textContent=S.played;
+  document.getElementById('stWins').textContent=S.wins_total;
+  // roadmap
+  const steps=[
+   {t:'Μάθε 3 παιχνίδια',done:Object.keys(S.lessons).length>=3},
+   {t:'Παίξε την πρώτη σου παρτίδα',done:S.played>=1},
+   {t:'Λύσε 5 ασκήσεις',done:Object.values(S.puzzles).filter(Boolean).length>=5},
+   {t:'Κέρδισε 3 παρτίδες',done:S.wins_total>=3},
+   {t:'Φτάσε 400 XP (Παίκτης)',done:S.xp>=400},
+   {t:'Ολοκλήρωσε όλα τα μαθήματα',done:Object.keys(S.lessons).length>=Object.keys(LESSONS).length},
+   {t:'Φτάσε 2200 XP — Επαγγελματίας 🏆',done:S.xp>=2200}
+  ];
+  let curFound=false;
+  document.getElementById('roadmapBox').innerHTML=steps.map((s,i)=>{
+    let cls=s.done?'done':(!curFound?'cur':'');if(!s.done&&!curFound)curFound=true;
+    return `<div class="roadstep ${cls}"><div class="dot">${s.done?'✓':i+1}</div>
+      <div><b>${s.t}</b><br><span class="sub">${s.done?'Ολοκληρώθηκε':(cls==='cur'?'Επόμενος στόχος':'Κλειδωμένο')}</span></div></div>`;
+  }).join('');
+}
+
+/* ---------- LEARN LIST ---------- */
+function renderGameList(){
+  document.getElementById('gameList').innerHTML=GAMES.map(g=>{
+    const done=S.lessons[g.id];
+    return `<div class="card gamecard" onclick="openLesson('${g.id}')">
+      ${g.playable?'<span class="playable tag red">▶ Παίξιμο</span>':''}
+      <div class="ic">${g.ic}</div>
+      <h3>${g.name} ${done?'<span class="badge-done">✓</span>':''}</h3>
+      <p class="sub">${g.short}</p>
+      <div class="meta"><span class="tag">${g.players} παίκτες</span><span class="tag">${g.deck}</span></div>
+      <div class="meta">${g.tags.map(t=>`<span class="tag gold">${t}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- LESSON READER ---------- */
+function openLesson(id){
+  curGameId=id;const g=GAMES.find(x=>x.id===id);
+  document.getElementById('lessonBody').innerHTML=LESSONS[id]?LESSONS[id]():'<p>Σύντομα…</p>';
+  const playBtn=document.getElementById('lessonPlayBtn');
+  if(g.playable){playBtn.style.display='';playBtn.textContent='🃏 Παίξε '+g.name;playBtn.className='btn primary';playBtn.onclick=()=>startGame(id);}
+  else{playBtn.style.display='none';}
+  const doneBtn=document.getElementById('lessonDoneBtn');
+  const done=S.lessons[id];
+  doneBtn.textContent=done?'✓ Ολοκληρωμένο':'Σημείωσέ το ως ολοκληρωμένο (+30 XP)';
+  doneBtn.disabled=!!done;
+  doneBtn.onclick=()=>{if(!S.lessons[id]){S.lessons[id]=Date.now();save();addXP(30,'μάθημα: '+g.name);doneBtn.textContent='✓ Ολοκληρωμένο';doneBtn.disabled=true;renderGameList();}};
+  go('lesson');
+}
+
+/* ---------- PLAY LOBBY ---------- */
+function renderPlayList(){
+  document.getElementById('playList').innerHTML=GAMES.filter(g=>g.playable).map(g=>`
+    <div class="card gamecard" onclick="startGame('${g.id}')">
+      <div class="ic">${g.ic}</div><h3>${g.name}</h3>
+      <p class="sub">${g.short}</p>
+      <div class="meta"><span class="tag red">▶ Παίξε vs AI</span></div>
+    </div>`).join('');
+}
+function startGame(id){curGameId=id;go('table');GAME_ENGINES[id]();}
+function quitGame(){if(window._activeGame&&window._activeGame.cleanup)window._activeGame.cleanup();window._activeGame=null;go('play');}
+function recordGame(id,won){
+  S.played++;if(won)S.wins_total++;
+  S.games[id]=(S.games[id]||0)+1;if(won)S.wins[id]=(S.wins[id]||0)+1;
+  save();addXP(won?40:15,won?'νίκη!':'παρτίδα');checkAch();
+}
+
+/* ---------- TOAST ---------- */
+let toastT;
+function toast(msg,kind){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(kind||'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',1900);}
+
+/* ============================================================
+   GAME ENGINES
+   ============================================================ */
+const GAME_ENGINES={};
+function host(){return document.getElementById('tableHost');}
+
+/* ---------------- XERI ---------------- */
+GAME_ENGINES.xeri=function(){
+  const st={deck:shuffle(makeDeck()),table:[],hands:[[],[]],piles:[[],[]],scores:[0,0],xeri:[0,0],turn:0,lastCapturer:0,over:false};
+  // initial
+  for(let i=0;i<4;i++)st.table.push(st.deck.pop());
+  deal();
+  function deal(){for(let p=0;p<2;p++)for(let i=0;i<4;i++)if(st.deck.length)st.hands[p].push(st.deck.pop());}
+  function render(){
+    const you=st.hands[0];
+    host().innerHTML=`
+    <div class="felt">
+      <div class="seat ${st.turn===1?'turn':''}" style="max-width:320px;margin:0 auto 10px">
+        <div class="nm"><span>🤖 Αντίπαλος (AI)</span><span class="stk">Πόντοι: ${st.scores[1]}</span></div>
+        <div class="hand" style="margin-top:6px">${st.hands[1].map(()=>cardEl(null,'mini')).join('')}</div>
+      </div>
+      <div style="text-align:center;margin:14px 0">
+        <div class="sub">Τραπέζι (${st.table.length} φύλλα)${st.deck.length?' · κλειστά: '+st.deck.length:''}</div>
+        <div class="hand" style="justify-content:center;margin-top:6px;min-height:70px">
+          ${st.table.length?st.table.map((c,i)=>cardEl(c,i===st.table.length-1?'':'dim')).join(''):'<span class="sub">(άδειο)</span>'}
+        </div>
+      </div>
+      <div class="seat ${st.turn===0?'turn':''}" style="max-width:520px;margin:10px auto 0">
+        <div class="nm"><span>🧑 Εσύ</span><span class="stk">Πόντοι: ${st.scores[0]} · Ξερές: ${st.xeri[0]}</span></div>
+        <div class="hand" style="margin-top:8px">${you.map((c,i)=>cardEl(c,'lg clk')).join('')}</div>
+      </div>
+    </div>
+    <div class="controls"><span class="sub" id="xeriMsg">${st.turn===0?'Η σειρά σου — διάλεξε φύλλο να ρίξεις.':'Παίζει ο αντίπαλος…'}</span></div>
+    <div class="log" id="xeriLog"></div>`;
+    if(st.turn===0){document.querySelectorAll('#tableHost .seat:last-child .pc').forEach((el,i)=>el.onclick=()=>playCard(0,i));}
+    renderLog();
+  }
+  const logs=[];
+  function log(m){logs.push(m);const el=document.getElementById('xeriLog');if(el){el.innerHTML=logs.slice(-40).map(x=>'<div>'+x+'</div>').join('');el.scrollTop=el.scrollHeight;}}
+  function renderLog(){const el=document.getElementById('xeriLog');if(el)el.innerHTML=logs.slice(-40).map(x=>'<div>'+x+'</div>').join('');}
+  function scoreCard(c){let s=0;if(c.r==='A')s+=1;if(c.r==='J')s+=1;if(c.r==='10'&&c.s==='♦')s+=2;if(c.r==='2'&&c.s==='♣')s+=1;return s;}
+  function playCard(p,idx){
+    if(st.over||st.turn!==p)return;
+    const card=st.hands[p].splice(idx,1)[0];
+    const top=st.table[st.table.length-1];
+    const who=p===0?'Εσύ':'AI';
+    let captured=false,wasXeri=false;
+    if(card.r==='J'){ // jack captures all
+      if(st.table.length){captured=true;}
+      log(`<b>${who}</b> ρίχνει ${card.r}${card.s} (Βαλές) — μαζεύει τα πάντα!`);
+    } else if(top && top.r===card.r){
+      captured=true;
+      if(st.table.length===1)wasXeri=true;
+      log(`<b>${who}</b> ρίχνει ${card.r}${card.s} — μάζεμα!${wasXeri?' <b>ΞΕΡΗ!</b> +10':''}`);
+    } else {
+      log(`<b>${who}</b> ρίχνει ${card.r}${card.s}.`);
+    }
+    if(captured){
+      st.piles[p].push(...st.table,card);
+      st.table=[];
+      st.lastCapturer=p;
+      if(wasXeri){st.xeri[p]++;st.scores[p]+=10;}
+    } else {
+      st.table.push(card);
+    }
+    // refill
+    if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
+    // end?
+    if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length===0){return endGame();}
+    st.turn=1-p;render();
+    if(st.turn===1&&!st.over)setTimeout(aiMove,750);
+  }
+  function aiMove(){
+    if(st.over)return;
+    const hand=st.hands[1];const top=st.table[st.table.length-1];
+    const tableVal=st.table.reduce((a,c)=>a+scoreCard(c),0);
+    let idx=-1;
+    if(top){const m=hand.findIndex(c=>c.r===top.r&&c.r!=='J');if(m>=0)idx=m;}     // capture by match
+    if(idx<0){const j=hand.findIndex(c=>c.r==='J');if(j>=0&&(tableVal>=1||st.table.length>=3))idx=j;} // sweep with Jack when worth it
+    if(idx<0){
+      let best=0,bv=1e9;
+      hand.forEach((c,i)=>{let v=scoreCard(c)*10+(c.r==='J'?60:0)+RVAL[c.r]*0.1;if(st.table.length===0)v+=8;if(v<bv){bv=v;best=i;}});
+      idx=best;
+      if(Math.random()<aiRnd())idx=Math.floor(Math.random()*hand.length);   // occasional slip (easy)
+    }
+    playCard(1,idx);
+  }
+  function endGame(){
+    st.over=true;
+    // last table to last capturer
+    if(st.table.length){st.piles[st.lastCapturer].push(...st.table);st.table=[];}
+    for(let p=0;p<2;p++)st.piles[p].forEach(c=>st.scores[p]+=scoreCard(c));
+    if(st.piles[0].length>=27)st.scores[0]+=3;else if(st.piles[1].length>=27)st.scores[1]+=3;
+    const won=st.scores[0]>st.scores[1];
+    render();
+    document.getElementById('xeriMsg').innerHTML=`<b style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':(st.scores[0]===st.scores[1]?'🤝 Ισοπαλία':'Έχασες.')}</b> Εσύ ${st.scores[0]} – ${st.scores[1]} AI (φύλλα: ${st.piles[0].length}/${st.piles[1].length})`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:14px"><button class="btn primary" onclick="startGame('xeri')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('xeri',won);
+  }
+  window._activeGame=st;render();log('Καλή επιτυχία! Ταίριαξε αξίες για μάζεμα· ο Βαλές μαζεύει τα πάντα.');
+};
+
+/* ---------------- POKER (Texas Hold'em heads-up-ish, 3 players) ---------------- */
+GAME_ENGINES.poker=function(){pokerEngine(3);};
+GAME_ENGINES.poka=function(){pokaEngine();};
+
+function pokerEngine(nPlayers){
+  const START=1000, SB=10, BB=20;
+  const st={n:nPlayers,stacks:Array(nPlayers).fill(START),cards:[],board:[],pot:0,bets:Array(nPlayers).fill(0),
+    folded:Array(nPlayers).fill(false),allin:Array(nPlayers).fill(false),street:0,toAct:0,curBet:0,dealer:0,over:false,logs:[],handNo:0};
+  function newHand(){
+    if(st.stacks[0]<=0){return finish(false);}
+    if(st.stacks.slice(1).every(s=>s<=0)){return finish(true);}
+    st.handNo++;
+    let deck=shuffle(makeDeck());
+    st.deck=deck;st.board=[];st.pot=0;st.bets=Array(st.n).fill(0);st.folded=st.stacks.map(s=>s<=0);st.allin=Array(st.n).fill(false);
+    st.cards=[];for(let p=0;p<st.n;p++)st.cards.push([deck.pop(),deck.pop()]);
+    st.street=0;st.curBet=0;
+    // blinds (dealer rotates)
+    const sb=(st.dealer+1)%st.n, bb=(st.dealer+2)%st.n;
+    postBlind(sb,SB);postBlind(bb,BB);st.curBet=BB;
+    st.lastRaiser=bb;st.acted=Array(st.n).fill(false);
+    st.toAct=(bb+1)%st.n;
+    log(`— Νέα χεριά #${st.handNo} — blinds ${SB}/${BB}`);
+    advanceIfNeeded();render();maybeAI();
+  }
+  function postBlind(p,amt){const a=Math.min(amt,st.stacks[p]);st.stacks[p]-=a;st.bets[p]+=a;st.pot+=a;if(st.stacks[p]===0)st.allin[p]=true;}
+  function log(m){st.logs.push(m);}
+  function activePlayers(){const r=[];for(let p=0;p<st.n;p++)if(!st.folded[p])r.push(p);return r;}
+  function canAct(p){return !st.folded[p]&&!st.allin[p]&&st.stacks[p]>0;}
+  function nameOf(p){return p===0?'Εσύ':'AI '+p;}
+
+  function advanceIfNeeded(){
+    // if only one left -> showdown/award
+    if(activePlayers().length<=1){return endStreet(true);}
+  }
+  function roundComplete(){
+    const act=activePlayers().filter(p=>canAct(p));
+    if(act.length===0)return true;
+    return act.every(p=>st.acted[p]&&st.bets[p]===st.curBet);
+  }
+
+  function playerAction(action,raiseTo){
+    if(st.toAct!==0||st.over)return;
+    doAction(0,action,raiseTo);
+  }
+  function doAction(p,action,raiseTo){
+    const toCall=st.curBet-st.bets[p];
+    if(action==='fold'){st.folded[p]=true;log(`<b>${nameOf(p)}</b> κάνει fold.`);}
+    else if(action==='check'){if(toCall>0){action='call';}else{log(`<b>${nameOf(p)}</b> check.`);}}
+    if(action==='call'){const a=Math.min(toCall,st.stacks[p]);st.stacks[p]-=a;st.bets[p]+=a;st.pot+=a;if(st.stacks[p]===0)st.allin[p]=true;log(`<b>${nameOf(p)}</b> ${a>0?'call '+a:'check'}.`);}
+    if(action==='raise'){
+      let target=raiseTo!=null?raiseTo:st.curBet*2+BB;
+      target=Math.min(target,st.bets[p]+st.stacks[p]); // cap allin
+      const add=target-st.bets[p];
+      st.stacks[p]-=add;st.bets[p]+=add;st.pot+=add;st.curBet=Math.max(st.curBet,st.bets[p]);
+      if(st.stacks[p]===0)st.allin[p]=true;
+      st.lastRaiser=p;st.acted=Array(st.n).fill(false);
+      log(`<b>${nameOf(p)}</b> ${st.allin[p]?'ALL-IN':'raise σε'} ${st.bets[p]}.`);
+    }
+    st.acted[p]=true;
+    // next
+    if(activePlayers().length<=1)return endStreet(true);
+    if(roundComplete())return endStreet(false);
+    let next=nextActor(p);
+    if(next===null)return endStreet(false);
+    st.toAct=next;render();maybeAI();
+  }
+  function nextActor(from){
+    for(let i=1;i<=st.n;i++){const p=(from+i)%st.n;if(canAct(p))return p;}
+    return null;
+  }
+  function endStreet(early){
+    st.bets=Array(st.n).fill(0);st.curBet=0;st.acted=Array(st.n).fill(false);
+    if(early&&activePlayers().length<=1){return award(activePlayers());}
+    st.street++;
+    if(st.street===1){st.board.push(st.deck.pop(),st.deck.pop(),st.deck.pop());log('— Flop —');}
+    else if(st.street===2){st.board.push(st.deck.pop());log('— Turn —');}
+    else if(st.street===3){st.board.push(st.deck.pop());log('— River —');}
+    else{return showdown();}
+    // if all remaining allin, fast-forward
+    const canActers=activePlayers().filter(canAct);
+    if(canActers.length<=1&&activePlayers().length>=2){render();setTimeout(()=>endStreet(false),700);return;}
+    st.toAct=firstToAct();st.lastRaiser=null;render();maybeAI();
+  }
+  function firstToAct(){for(let i=1;i<=st.n;i++){const p=(st.dealer+i)%st.n;if(canAct(p))return p;}return null;}
+  function showdown(){
+    const act=activePlayers();
+    let best=null,winners=[];
+    act.forEach(p=>{const e=bestHand([...st.cards[p],...st.board]);st._ev=st._ev||{};st._ev[p]=e;
+      if(!best||cmpEval(e,best)>0){best=e;winners=[p];}else if(cmpEval(e,best)===0)winners.push(p);});
+    award(winners,true);
+  }
+  function award(winners,show){
+    const share=Math.floor(st.pot/winners.length);
+    winners.forEach(p=>st.stacks[p]+=share);
+    st.over_hand=true;
+    const nm=winners.map(nameOf).join(', ');
+    log(`🏆 Κερδίζει: <b>${nm}</b> (+${share})${show&&st._ev?' με '+st._ev[winners[0]].name:''}`);
+    render(true);
+    // continue or finish
+    if(st.stacks[0]<=0){setTimeout(()=>finish(false),400);return;}
+    if(st.stacks.slice(1).every(s=>s<=0)){setTimeout(()=>finish(true),400);return;}
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" id="nextHand">Επόμενη χεριά →</button></div>`);
+    document.getElementById('nextHand').onclick=()=>{st.dealer=(st.dealer+1)%st.n;st.over_hand=false;st._ev=null;newHand();};
+  }
+  function finish(won){
+    st.over=true;render(true);
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px">
+      <h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Καθάρισες το τραπέζι!':'💸 Έμεινες χωρίς μάρκες.'}</h3>
+      <button class="btn primary" onclick="startGame('poker')">🔄 Νέο τραπέζι</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('poker',won);
+  }
+  // AI
+  function maybeAI(){
+    if(st.over||st.over_hand)return;
+    if(st.toAct!==0&&st.toAct!=null)setTimeout(aiAct,700);
+  }
+  function aiAct(){
+    const p=st.toAct;
+    if(p===0||p==null||st.over||st.over_hand)return;
+    if(!canAct(p)){if(roundComplete())return endStreet(false);const nx=nextActor(p);if(nx==null)return endStreet(false);st.toAct=nx;render();return maybeAI();}
+    const toCall=st.curBet-st.bets[p];
+    const nopp=Math.max(1,activePlayers().length-1);
+    const eq=equityHoldem(st.cards[p],st.board,nopp,pokerIters());
+    const potOdds=toCall>0?toCall/(st.pot+toCall):0;
+    const pot=st.pot;const sizeBet=(f)=>st.curBet+Math.max(BB,Math.round(pot*f));
+    const bluffFreq=[0.04,0.10,0.17][AILEVEL];const mistake=Math.random()<aiRnd();
+    let action='check',raiseTo=null;
+    if(toCall===0){
+      if(eq>0.80){action=Math.random()<0.25?'check':'raise';if(action==='raise')raiseTo=sizeBet(0.8);}   // trap monsters
+      else if(eq>0.57){action='raise';raiseTo=sizeBet(0.66);}
+      else if(eq>0.42&&Math.random()<0.4){action='raise';raiseTo=sizeBet(0.5);}
+      else if(Math.random()<bluffFreq&&st.board.length>=3){action='raise';raiseTo=sizeBet(0.55);}
+      else action='check';
+    } else {
+      if(eq>0.72){action=Math.random()<0.7?'raise':'call';if(action==='raise')raiseTo=sizeBet(0.8);}
+      else if(eq>potOdds+0.06){action=(eq>0.6&&Math.random()<0.3)?'raise':'call';if(action==='raise')raiseTo=sizeBet(0.55);}
+      else if(eq>potOdds-0.02&&Math.random()<0.5){action='call';}
+      else if(Math.random()<bluffFreq&&st.board.length>=3&&toCall<pot*0.5){action='raise';raiseTo=sizeBet(0.6);}
+      else action='fold';
+    }
+    if(mistake){if(action==='fold'&&toCall<=pot*0.4)action='call';else if(action==='raise'){action='call';raiseTo=null;}}
+    if(action==='raise'&&raiseTo!=null&&raiseTo>=st.bets[p]+st.stacks[p]*0.7)raiseTo=st.bets[p]+st.stacks[p]; // shove
+    doAction(p,action,raiseTo);
+  }
+  function render(showAll){
+    const me=st.cards[0]||[];
+    let seats='';
+    for(let p=1;p<st.n;p++){
+      seats+=`<div class="seat ${st.toAct===p&&!st.over_hand?'turn':''} ${st.folded[p]?'folded':''}" style="flex:1;min-width:120px">
+        <div class="nm"><span>🤖 ${nameOf(p)} ${p===st.dealer?'🔘':''}</span><span class="stk">${st.stacks[p]}</span></div>
+        <div class="hand tight" style="margin-top:6px">${(st.folded[p]?[]:st.cards[p]).map(c=>showAll&&!st.folded[p]?cardEl(c,'mini'):cardEl(null,'mini')).join('')||'<span class="sub">fold</span>'}</div>
+        ${st.bets[p]?`<div style="margin-top:4px"><span class="chip">${st.bets[p]}</span></div>`:''}
+      </div>`;
+    }
+    const toCall=st.curBet-st.bets[0];
+    const showControls=st.toAct===0&&!st.over_hand&&!st.over&&canAct(0);
+    host().innerHTML=`
+    <div class="felt">
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">${seats}</div>
+      <div class="board-cards">${st.board.map((c,i)=>cardEl(c,i>=(st._shown||0)?'deal':'')).join('')||'<span class="sub">— κοινά φύλλα —</span>'}</div>
+      <div class="pot">💰 ΠΟΤ: ${st.pot}${st.curBet?' · να καλύψεις: '+Math.max(0,toCall):''}</div>
+      <div class="seat ${st.toAct===0&&!st.over_hand?'turn':''} ${st.folded[0]?'folded':''}" style="max-width:420px;margin:14px auto 0">
+        <div class="nm"><span>🧑 Εσύ ${st.dealer===0?'🔘':''}</span><span class="stk">${st.stacks[0]}</span></div>
+        <div class="hand" style="margin-top:8px">${me.map(c=>cardEl(c,'lg')).join('')}</div>
+        ${st.bets[0]?`<div style="margin-top:6px"><span class="chip">ποντάρισμα ${st.bets[0]}</span></div>`:''}
+        ${!st.over_hand&&!st.folded[0]?`<div class="sub" style="margin-top:6px">Χεριά σου: <b>${bestHand([...me,...st.board]).name}</b></div>`:''}
+      </div>
+    </div>`;
+    if(showControls){
+      const maxRaise=st.bets[0]+st.stacks[0];
+      const minRaise=Math.min(maxRaise,st.curBet+BB);
+      host().insertAdjacentHTML('beforeend',`
+      <div class="controls">
+        <button class="btn" onclick="_pk('fold')">Fold</button>
+        <button class="btn" onclick="_pk('${toCall>0?'call':'check'}')">${toCall>0?'Call '+Math.min(toCall,st.stacks[0]):'Check'}</button>
+        <button class="btn primary" onclick="_pkRaise()">${toCall>0?'Raise':'Bet'}</button>
+        <input type="range" id="raiseR" min="${minRaise}" max="${maxRaise}" value="${Math.min(maxRaise,Math.max(minRaise,Math.round(st.pot*0.6)+st.curBet))}" style="flex:1;min-width:120px">
+        <span id="raiseV" class="chip"></span>
+      </div>`);
+      const rr=document.getElementById('raiseR'),rv=document.getElementById('raiseV');
+      const upd=()=>rv.textContent='→ '+rr.value;rr.oninput=upd;upd();
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="log" id="pkLog">${st.logs.slice(-50).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    const lg=document.getElementById('pkLog');if(lg)lg.scrollTop=lg.scrollHeight;
+    st._shown=st.board.length;
+  }
+  window._pk=(a)=>playerAction(a);
+  window._pkRaise=()=>{const rr=document.getElementById('raiseR');playerAction('raise',+rr.value);};
+  window._activeGame=st;
+  newHand();
+}
+
+/* ---------------- POKA (5-card draw) ---------------- */
+function pokaEngine(){
+  const START=1000,ANTE=20;
+  const st={n:3,stacks:Array(3).fill(START),hands:[[],[],[]],pot:0,phase:'deal',over:false,logs:[],dealer:0,handNo:0,sel:[]};
+  function log(m){st.logs.push(m);}
+  function newHand(){
+    if(st.stacks[0]<=0)return finish(false);
+    if(st.stacks[1]<=0&&st.stacks[2]<=0)return finish(true);
+    st.handNo++;st.deck=shuffle(makeDeck());st.pot=0;st.folded=[false,false,false];st.sel=[];st.phase='predraw';
+    for(let p=0;p<3;p++){st.hands[p]=[];for(let i=0;i<5;i++)st.hands[p].push(st.deck.pop());}
+    for(let p=0;p<3;p++){const a=Math.min(ANTE,st.stacks[p]);st.stacks[p]-=a;st.pot+=a;}
+    // sort your hand
+    st.hands[0].sort((a,b)=>RVAL[b.r]-RVAL[a.r]);
+    st.bet=[0,0,0];st.curBet=0;st.folded=[false,false,false];
+    log(`— Χεριά #${st.handNo} — άντε ${ANTE} ο καθένας —`);
+    // simple betting round 1: AI acts, then you
+    st.phase='bet1';st.toAct=0;render();
+  }
+  // Simplified betting: single decision each (check/call small, raise, fold), then draw, then showdown
+  function handStrength(cards){const e=bestHand(cards);return e.cat + (e.ranks[0]||0)/100;}
+  function aiDecision(p){
+    const cat=bestHand(st.hands[p]).cat;const toCall=st.curBet-st.bet[p];const r=Math.random();
+    const bluff=r<[0.03,0.08,0.14][AILEVEL];
+    if(cat>=3)return {a:r<0.7?'raise':'call'};                        // trips+
+    if(cat>=1)return {a:(cat>=2&&r<0.4)?'raise':(toCall>0?'call':'check')}; // pair/two-pair
+    if(toCall>0){if(bluff)return {a:'raise'};return {a:(r<[0.55,0.75,0.9][AILEVEL])?'fold':'call'};}
+    return {a:bluff?'raise':'check'};
+  }
+  function betRound(next){
+    // AI opponents act simply, you decide via buttons
+    st.phase='bet1';render();
+  }
+  function playerBet(action){
+    if(action==='fold'){st.folded[0]=true;log('Έκανες fold.');return resolveFold();}
+    const toCall=st.curBet-st.bet[0];
+    if(action==='raise'){const amt=Math.min(st.stacks[0],ANTE*2+toCall);st.stacks[0]-=amt;st.bet[0]+=amt;st.pot+=amt;st.curBet=Math.max(st.curBet,st.bet[0]);log('Raise +'+amt+'.');}
+    else{const amt=Math.min(st.stacks[0],toCall);st.stacks[0]-=amt;st.bet[0]+=amt;st.pot+=amt;log(amt>0?'Call '+amt+'.':'Check.');}
+    // AI respond
+    for(let p=1;p<3;p++){if(st.folded[p])continue;const d=aiDecision(p);const tc=st.curBet-st.bet[p];
+      if(d.a==='fold'&&tc>0){st.folded[p]=true;log('AI '+p+' fold.');}
+      else if(d.a==='raise'){const amt=Math.min(st.stacks[p],ANTE*2+tc);st.stacks[p]-=amt;st.bet[p]+=amt;st.pot+=amt;st.curBet=Math.max(st.curBet,st.bet[p]);log('AI '+p+' raise → '+st.bet[p]+'.');}
+      else{const amt=Math.min(st.stacks[p],tc);st.stacks[p]-=amt;st.bet[p]+=amt;st.pot+=amt;log('AI '+p+(amt>0?' call.':' check.'));}
+    }
+    // call up any outstanding for you (simplified: auto-call small diffs)
+    goDraw();
+  }
+  function resolveFold(){
+    const alive=[0,1,2].filter(p=>!st.folded[p]);
+    if(alive.length===1)return award([alive[0]]);
+    goDraw();
+  }
+  function goDraw(){
+    if(st.folded[0]){return; }
+    st.phase='draw';st.sel=[];render();
+  }
+  function doDraw(){
+    // replace selected for you
+    const keep=st.hands[0].filter((c,i)=>!st.sel.includes(i));
+    const nDraw=5-keep.length;
+    for(let i=0;i<nDraw;i++)keep.push(st.deck.pop());
+    st.hands[0]=keep.sort((a,b)=>RVAL[b.r]-RVAL[a.r]);
+    log('Άλλαξες '+nDraw+' φύλλα.');
+    // AI draw: keep pairs+ , discard rest
+    for(let p=1;p<3;p++){if(st.folded[p])continue;aiDraw(p);}
+    st.phase='showdown';showdown();
+  }
+  function aiDraw(p){
+    const h=st.hands[p];const cnt={};h.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);
+    const bySuit={};h.forEach(c=>(bySuit[c.s]=bySuit[c.s]||[]).push(c));
+    const flush4=Object.values(bySuit).find(a=>a.length===4);
+    const pairsPlus=h.filter(c=>cnt[c.r]>=2);
+    let keep;
+    if(pairsPlus.length>=2)keep=pairsPlus.slice();                    // pair/two-pair/trips/quads
+    else if(flush4&&AILEVEL>=1)keep=flush4.slice();                   // chase the flush
+    else keep=[h.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0]];        // keep top card
+    let nd=5-keep.length;
+    for(let i=0;i<nd;i++)if(st.deck.length)keep.push(st.deck.pop());
+    st.hands[p]=keep;log('AI '+p+' άλλαξε '+nd+' φύλλα.');
+  }
+  function showdown(){
+    const alive=[0,1,2].filter(p=>!st.folded[p]);
+    let best=null,win=[];
+    alive.forEach(p=>{const e=bestHand(st.hands[p]);st._ev=st._ev||{};st._ev[p]=e;if(!best||cmpEval(e,best)>0){best=e;win=[p];}else if(cmpEval(e,best)===0)win.push(p);});
+    award(win,true);
+  }
+  function award(winners,show){
+    const share=Math.floor(st.pot/winners.length);winners.forEach(p=>st.stacks[p]+=share);
+    log('🏆 '+winners.map(p=>p===0?'Εσύ':'AI '+p).join(', ')+' +'+share+(show&&st._ev?' ('+st._ev[winners[0]].name+')':''));
+    st.phase='done';render(true);
+    if(st.stacks[0]<=0)return setTimeout(()=>finish(false),400);
+    if(st.stacks[1]<=0&&st.stacks[2]<=0)return setTimeout(()=>finish(true),400);
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="_pokaNext()">Επόμενη χεριά →</button></div>`);
+  }
+  function finish(won){st.over=true;render(true);host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Νίκη!':'💸 Χρεοκόπησες'}</h3><button class="btn primary" onclick="startGame('poka')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('poka',won);}
+  function render(show){
+    let seats='';
+    for(let p=1;p<3;p++){seats+=`<div class="seat ${st.folded[p]?'folded':''}" style="flex:1">
+      <div class="nm"><span>🤖 AI ${p}</span><span class="stk">${st.stacks[p]}</span></div>
+      <div class="hand tight" style="margin-top:6px">${st.folded[p]?'<span class="sub">fold</span>':st.hands[p].map(c=>show&&st.phase==='done'?cardEl(c,'mini'):cardEl(null,'mini')).join('')}</div>
+      ${st.bet[p]?`<span class="chip">${st.bet[p]}</span>`:''}</div>`;}
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:10px;justify-content:center">${seats}</div>
+      <div class="pot" style="margin:14px 0">💰 ΠΟΤ: ${st.pot}</div>
+      <div class="seat turn" style="max-width:480px;margin:0 auto">
+        <div class="nm"><span>🧑 Εσύ</span><span class="stk">${st.stacks[0]}</span></div>
+        <div class="hand" style="margin-top:8px">${st.hands[0].map((c,i)=>cardEl(c,'lg'+(st.phase==='draw'?' clk':'')+(st.sel.includes(i)?' sel':''))).join('')}</div>
+        <div class="sub" style="margin-top:6px">Χεριά: <b>${bestHand(st.hands[0]).name}</b></div>
+      </div></div>`;
+    if(st.phase==='bet1'){
+      const tc=st.curBet-st.bet[0];
+      host().insertAdjacentHTML('beforeend',`<div class="controls">
+        <button class="btn" onclick="_pokaBet('fold')">Fold</button>
+        <button class="btn" onclick="_pokaBet('call')">${tc>0?'Call '+tc:'Check'}</button>
+        <button class="btn primary" onclick="_pokaBet('raise')">Raise</button></div>`);
+    } else if(st.phase==='draw'){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Διάλεξε φύλλα για αλλαγή (κλικ) — μετά:</span>
+        <button class="btn primary" onclick="_pokaDraw()">Αλλαγή (${st.sel.length}) / Σερβί</button></div>`);
+      host().querySelectorAll('.seat.turn .pc').forEach((el,i)=>el.onclick=()=>{const k=st.sel.indexOf(i);if(k>=0)st.sel.splice(k,1);else st.sel.push(i);render();});
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="log" id="pokaLog">${st.logs.slice(-50).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    const lg=document.getElementById('pokaLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._pokaBet=playerBet;window._pokaDraw=doDraw;window._pokaNext=()=>{st.dealer=(st.dealer+1)%3;st._ev=null;newHand();};
+  window._activeGame=st;newHand();
+}
+
+/* ---------------- KOUM KAN (simplified rummy vs AI) ---------------- */
+GAME_ENGINES.koumkan=function(){
+  // Simplified: single deck + 2 jokers, 2 players, 10 cards, draw+discard, first to form all melds & empty wins.
+  const st={over:false,logs:[]};
+  let deck=shuffle(makeDeck().concat(makeDeck())); // 2 decks
+  // add 2 jokers
+  deck.push({r:'★',s:'joker',joker:true},{r:'★',s:'joker',joker:true});
+  shuffle(deck);
+  const hands=[[],[]];for(let p=0;p<2;p++)for(let i=0;i<10;i++)hands[p].push(deck.pop());
+  const discard=[deck.pop()];
+  let turn=0,drawn=false;
+  const st2={};
+  function log(m){st.logs.push(m);}
+  function sortHand(h){h.sort((a,b)=>{if(a.joker)return 1;if(b.joker)return -1;if(a.s!==b.s)return SUITS.indexOf(a.s)-SUITS.indexOf(b.s);return RVAL[a.r]-RVAL[b.r];});}
+  // meld detection: can we partition hand (10 cards, but after draw 11) into melds of >=3 with jokers?
+  function bestMeldScore(cards){
+    // greedy: count how many cards can be placed into sets/runs. returns melded count.
+    // Try sets by rank
+    const jokers=cards.filter(c=>c.joker).length;
+    const real=cards.filter(c=>!c.joker);
+    // brute-ish: try to maximize melded using simple heuristic
+    let melded=0;let used=new Array(real.length).fill(false);let jk=jokers;
+    // sets of same rank
+    const byRank={};real.forEach((c,i)=>{(byRank[c.r]=byRank[c.r]||[]).push(i);});
+    Object.values(byRank).forEach(idxs=>{if(idxs.length>=3){idxs.forEach(i=>used[i]=true);melded+=idxs.length;}});
+    // runs same suit
+    const bySuit={};real.forEach((c,i)=>{if(used[i])return;(bySuit[c.s]=bySuit[c.s]||[]).push({v:RVAL[c.r],i});});
+    Object.values(bySuit).forEach(arr=>{arr.sort((a,b)=>a.v-b.v);let run=[];for(let k=0;k<arr.length;k++){if(run.length&&arr[k].v===run[run.length-1].v+1)run.push(arr[k]);else{flush();run=[arr[k]];}}flush();function flush(){if(run.length>=3){run.forEach(x=>used[x.i]=true);melded+=run.length;}run=[];}});
+    return melded+jk; // jokers assumed usable
+  }
+  function isWin(cards){return bestMeldScore(cards)>=cards.length && cards.length>=10;}
+  function render(){
+    sortHand(hands[0]);
+    host().innerHTML=`<div class="felt">
+      <div class="seat ${turn===1?'turn':''}" style="max-width:340px;margin:0 auto 10px">
+        <div class="nm"><span>🤖 Αντίπαλος</span><span class="stk">${hands[1].length} φύλλα</span></div>
+        <div class="hand tight" style="margin-top:6px">${hands[1].map(()=>cardEl(null,'mini')).join('')}</div>
+      </div>
+      <div style="display:flex;gap:24px;justify-content:center;align-items:center;margin:16px 0">
+        <div style="text-align:center"><div class="sub">Στοίβα (${deck.length})</div>
+          <div onclick="_kkDrawDeck()" style="cursor:${turn===0&&!drawn?'pointer':'default'}">${cardEl(null,'lg'+(turn===0&&!drawn?' clk':''))}</div></div>
+        <div style="text-align:center"><div class="sub">Καμένα</div>
+          <div onclick="_kkDrawDisc()" style="cursor:${turn===0&&!drawn?'pointer':'default'}">${discard.length?cardEl(discard[discard.length-1],'lg'+(turn===0&&!drawn?' clk':'')):cardEl(null,'lg dim')}</div></div>
+      </div>
+      <div class="seat ${turn===0?'turn':''}" style="max-width:640px;margin:0 auto">
+        <div class="nm"><span>🧑 Εσύ</span><span class="stk">Συνδυασμοί: ${bestMeldScore(hands[0])}/${hands[0].length}</span></div>
+        <div class="hand" style="margin-top:8px">${hands[0].map((c,i)=>cardEl(c,'clk'+(st._sel===i?' sel':''))).join('')}</div>
+      </div></div>
+      <div class="controls"><span class="sub" id="kkMsg">${turn===0?(drawn?'Διάλεξε φύλλο να πετάξεις (κλικ + Πέτα).':'Τράβα φύλλο από στοίβα ή καμένα.'):'Παίζει ο αντίπαλος…'}</span>
+        ${turn===0&&drawn?'<button class="btn primary" onclick="_kkDiscard()">Πέτα επιλεγμένο</button>':''}
+        ${turn===0&&drawn&&isWin(hands[0])?'<button class="btn gold" onclick="_kkWin()">🏆 ΚΛΕΙΣΕ!</button>':''}
+      </div>
+      <div class="log" id="kkLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    if(turn===0&&drawn){host().querySelectorAll('.seat.turn .pc').forEach((el,i)=>el.onclick=()=>{st._sel=i;render();});}
+    const lg=document.getElementById('kkLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._kkDrawDeck=()=>{if(turn!==0||drawn||st.over)return;hands[0].push(deck.pop());drawn=true;st._sel=null;log('Τράβηξες από τη στοίβα.');if(!deck.length)reshuffle();render();};
+  window._kkDrawDisc=()=>{if(turn!==0||drawn||st.over||!discard.length)return;hands[0].push(discard.pop());drawn=true;st._sel=null;log('Πήρες από τα καμένα.');render();};
+  window._kkDiscard=()=>{if(turn!==0||!drawn||st._sel==null)return;const c=hands[0].splice(st._sel,1)[0];discard.push(c);st._sel=null;drawn=false;log('Πέταξες '+(c.joker?'★':c.r+c.s)+'.');turn=1;render();setTimeout(aiTurn,800);};
+  window._kkWin=()=>{if(!isWin(hands[0]))return;st.over=true;log('🏆 Έκλεισες! Νίκη!');finish(true);};
+  function reshuffle(){const top=discard.pop();deck=shuffle(discard.splice(0));discard.push(top);log('Ανακάτεμα καμένων.');}
+  function connKK(c,hand){if(c.joker)return 100;let s=0;hand.forEach(o=>{if(o===c||o.joker)return;if(o.r===c.r)s+=3;else if(o.s===c.s&&Math.abs(RVAL[o.r]-RVAL[c.r])<=2)s+=2;});return s;}
+  function aiTurn(){
+    if(st.over)return;
+    const top=discard[discard.length-1];let took=false;
+    if(top){const before=bestMeldScore(hands[1]);hands[1].push(top);const after=bestMeldScore(hands[1]);const near=AILEVEL>=2&&connKK(top,hands[1])>=4;
+      if(after>before||near){discard.pop();took=true;log('AI πήρε από καμένα.');}else hands[1].pop();}
+    if(!took){if(!deck.length)reshuffle();hands[1].push(deck.pop());log('AI τράβηξε από στοίβα.');}
+    if(isWin(hands[1])){st.over=true;log('🤖 Ο αντίπαλος έκλεισε.');render();return finish(false);}
+    let bi=0,bv=1e9;hands[1].forEach((c,i)=>{const test=hands[1].filter((_,j)=>j!==i);const gain=bestMeldScore(hands[1])-bestMeldScore(test);
+      const keep=gain*100+connKK(c,hands[1])*4-RVAL[c.r]*0.2+(c.joker?999:0);if(keep<bv){bv=keep;bi=i;}});
+    if(Math.random()<aiRnd())bi=Math.floor(Math.random()*hands[1].length);
+    const c=hands[1].splice(bi,1)[0];discard.push(c);log('AI πέταξε '+(c.joker?'★':c.r+c.s)+'.');turn=0;drawn=false;render();
+  }
+  function finish(won){render();host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':'Ο αντίπαλος κέρδισε.'}</h3><button class="btn primary" onclick="startGame('koumkan')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('koumkan',won);}
+  window._activeGame=st;log('Στόχος: κάνε όλα τα φύλλα σου τριάδες/κέντες (★=τζόκερ) και κλείσε.');render();
+};
+
+/* ============================================================
+   PUZZLES
+   ============================================================ */
+const PUZZLES=[
+ {id:'pk1',cat:'Πόκερ',q:'Στο preflop κρατάς Α♠ Α♦ (ζευγάρι άσσων). Ένας αντίπαλος κάνει μεγάλο raise. Τι κάνεις;',
+  cards:[{r:'A',s:'♠'},{r:'A',s:'♦'}],
+  opts:['Fold — πολύ ρίσκο','Call / Re-raise — είναι το καλύτερο χέρι preflop','Check και ελπίζω'],a:1,
+  ex:'Το ΑΑ είναι το ισχυρότερο preflop χέρι. Πρέπει να παίξεις επιθετικά (raise/re-raise), όχι να το πετάξεις.'},
+ {id:'pk2',cat:'Πόκερ',q:'Board: K♥ 7♣ 2♦. Κρατάς 8♠ 8♥. Αντίπαλος ποντάρει δυνατά. Το χέρι σου;',
+  cards:[{r:'8',s:'♠'},{r:'8',s:'♥'}],
+  opts:['Έχω το καλύτερο δυνατό','Μεσαίο ζευγάρι — κάτω από τον Ρήγα','Έχω κέντα'],a:1,
+  ex:'Έχεις ζευγάρι 8, αλλά υπάρχει Ρήγας στο board. Αν ο αντίπαλος έχει Κ, χάνεις. Είναι μαργինάλ — πρόσεξε το μέγεθος του pot.'},
+ {id:'pk3',cat:'Πόκερ',q:'Pot: 100. Ο αντίπαλος ποντάρει 20 (πρέπει να βάλεις 20). Έχεις flush draw (~35% να το πιάσεις). Καλό call;',
+  opts:['Όχι, fold','Ναι — pot odds ευνοϊκά','Αδιάφορο'],a:1,
+  ex:'Pot odds: 20/(120+20)=~14%. Η πιθανότητα να πιάσεις (~35%) είναι πολύ μεγαλύτερη → +EV call.'},
+ {id:'pk4',cat:'Πόκερ',q:'Ποια χεριά κερδίζει; Φουλ ή Χρώμα (Φλος);',
+  opts:['Χρώμα','Φουλ','Ισοπαλία'],a:1,
+  ex:'Σειρά: Φουλ > Χρώμα. Το Φουλ (τριάδα+ζεύγος) είναι ισχυρότερο από το Χρώμα (5 ίδιου χρώματος).'},
+ {id:'pk5',cat:'Πόκερ',q:'Είσαι στη θέση του dealer (button). Γιατί είναι πλεονέκτημα;',
+  opts:['Μοιράζεις τα φύλλα','Παίζεις τελευταίος → περισσότερη πληροφορία','Παίρνεις έξτρα φύλλο'],a:1,
+  ex:'Η θέση = δύναμη. Ενεργώντας τελευταίος βλέπεις τι κάνουν όλοι πριν αποφασίσεις.'},
+ {id:'xe1',cat:'Ξερή',q:'Στο τραπέζι υπάρχει μόνο ένα 9♦ (πάνω-πάνω). Κρατάς 9♣ και Βαλέ. Τι ρίχνεις για μέγιστο όφελος;',
+  cards:[{r:'9',s:'♣'},{r:'J',s:'♠'}],
+  opts:['Τον Βαλέ','Το 9♣ — κάνω ΞΕΡΗ (+10)','Τίποτα'],a:1,
+  ex:'Με ένα μόνο φύλλο στο τραπέζι, ταιριάζοντάς το κάνεις ΞΕΡΗ = +10 πόντοι. Κράτα τον Βαλέ για όταν μαζευτούν πολλά.'},
+ {id:'xe2',cat:'Ξερή',q:'Πότε είναι ιδανικό να παίξεις τον Βαλέ;',
+  opts:['Όταν το τραπέζι είναι άδειο','Όταν το τραπέζι έχει μαζέψει πολλά φύλλα','Πάντα πρώτα'],a:1,
+  ex:'Ο Βαλές μαζεύει ΟΛΑ τα φύλλα του τραπεζιού — αξιοποίησέ τον όταν υπάρχουν πολλά (ιδίως άσσοι/δεκάρια).'},
+ {id:'kk1',cat:'Κουμ Καν',q:'Κρατάς 7♥ 7♠ 7♦ και 6♥ 8♥. Ποιος είναι ο καλύτερος συνδυασμός;',
+  opts:['Μόνο η τριάδα 7-7-7','Τριάδα 7 ΚΑΙ το 6♥7♥8♥ μοιράζονται το 7♥;','Τίποτα'],a:0,
+  ex:'Ένα φύλλο μπαίνει σε ΕΝΑΝ συνδυασμό. Το 7♥ δεν μπορεί να είναι ταυτόχρονα σε τριάδα & κέντα. Διάλεξε ποιο σε συμφέρει βάσει των υπόλοιπων φύλλων.'},
+ {id:'kk2',cat:'Κουμ Καν',q:'Πότε να χρησιμοποιήσεις τον τζόκερ;',
+  opts:['Αμέσως, σε ό,τι βρεις','Για να κλείσεις δύσκολο συνδυασμό που αλλιώς δεν γίνεται','Ποτέ'],a:1,
+  ex:'Ο τζόκερ είναι πολύτιμος (20 πόντοι ποινή). Κράτα τον για να συμπληρώσεις συνδυασμό που δεν κλείνει αλλιώς.'},
+ {id:'pr1',cat:'Πρέφα',q:'Ποια είναι η σειρά ισχύος των ατού στην πρέφα;',
+  opts:['Κούπα > Καρό > Σπαθί > Μπαστούνι','Μπαστούνι > Σπαθί > Καρό > Κούπα','Όλα ίσα'],a:1,
+  ex:'Στην πρέφα: Μπαστούνι > Σπαθί > Καρό > Κούπα. Επηρεάζει τις δηλώσεις.'},
+ {id:'po1',cat:'Πόκα',q:'Κρατάς Κ♠ Κ♦ και 3 άσχετα. Πόσα φύλλα αλλάζεις;',
+  cards:[{r:'K',s:'♠'},{r:'K',s:'♦'}],
+  opts:['0 (σερβί)','3 (κρατάω το ζευγάρι)','5 (όλα)'],a:1,
+  ex:'Κράτα το ζευγάρι Ρήγες και άλλαξε 3 για να βελτιωθείς (τριάδα/φουλ/δύο ζεύγη).'},
+ {id:'bl1',cat:'Μπλόφα',q:'Πότε είναι πιο ασφαλές να μπλοφάρεις;',
+  opts:['Όταν έχεις ήδη κατεβάσει πολλά φύλλα (έχεις άλλοθι)','Στο πρώτο σου φύλλο','Ποτέ'],a:0,
+  ex:'Με πολλά κατεβασμένα φύλλα, η μπλόφα σου είναι πιο πιστευτή και πιο δύσκολο να ελεγχθεί.'},
+
+ // --- Περισσότερο Πόκερ ---
+ {id:'pk6',cat:'Πόκερ',q:'Board: Q♠ J♠ 4♥. Κρατάς A♠ 10♠. Τι έχεις;',
+  cards:[{r:'A',s:'♠'},{r:'10',s:'♠'}],
+  opts:['Ήδη χρώμα','Flush draw + gutshot κέντα — πολύ δυνατό draw','Τίποτα'],a:1,
+  ex:'Έχεις 4 σπαθιά…σπαθιά; όχι — 4 μπαστούνια για χρώμα (draw) ΚΑΙ οποιοσδήποτε Ρήγας κάνει κέντα (A-K-Q-J-10). Τεράστιο draw, παίξε επιθετικά.'},
+ {id:'pk7',cat:'Πόκερ',q:'Έχεις 5 «outs» στο turn (1 φύλλο ακόμη). Πρόχειρος κανόνας πιθανότητας;',
+  opts:['~2% ανά out','~2×outs = ~10%','~50%'],a:1,
+  ex:'Κανόνας του 2 & 4: στο turn πολλαπλασίασε τα outs ×2. 5 outs ≈ 10% να πιάσεις στο river.'},
+ {id:'pk8',cat:'Πόκερ',q:'Τι σημαίνει να παίζεις «tight-aggressive» (TAG);',
+  opts:['Παίζω πολλά χέρια χαλαρά','Παίζω λίγα αλλά δυνατά χέρια, επιθετικά','Κάνω πάντα call'],a:1,
+  ex:'Το TAG είναι το πιο κερδοφόρο στυλ για αρχάριους: επιλέγεις λίγα καλά χέρια και τα παίζεις με bet/raise.'},
+ {id:'pk9',cat:'Πόκερ',q:'Είσαι πρώτος να μιλήσεις (early position) με K♣ 9♦. Τι κάνεις;',
+  cards:[{r:'K',s:'♣'},{r:'9',s:'♦'}],
+  opts:['Raise δυνατά','Fold — αδύναμο για τη θέση','All-in'],a:1,
+  ex:'K9 offsuit από νωρίς είναι προβληματικό: συχνά κυριαρχείται (KQ, KJ, AK). Πέτα το από early position.'},
+ // --- Μπριτζ ---
+ {id:'br1',cat:'Μπριτζ',q:'Κρατάς: A♠ K♠ Q♥ J♦ + μικρά. Πόσοι HCP;',
+  opts:['7','10','13'],a:1,
+  ex:'A=4, K=3, Q=2, J=1 → 4+3+2+1 = 10 HCP.'},
+ {id:'br2',cat:'Μπριτζ',q:'Το ζευγάρι σου έχει συνολικά 26 HCP. Τι στοχεύεις;',
+  opts:['Μερικό συμβόλαιο','Μανς (game): 4♥/4♠ ή 3ΧΑ','Πάσο σε όλα'],a:1,
+  ex:'25+ HCP συνήθως φτάνουν για μανς. Με φιτ σε μεγάλο χρώμα πήγαινε 4♥/4♠, αλλιώς 3ΧΑ.'},
+ {id:'br3',cat:'Μπριτζ',q:'Συμβόλαιο «4♠». Πόσες λεβέ πρέπει να κάνεις;',
+  opts:['4','8','10 (επίπεδο 4 + 6)'],a:2,
+  ex:'Πάντα +6: επίπεδο 4 → 4+6 = 10 λεβέ, με ατού Πίκα.'},
+ {id:'br4',cat:'Μπριτζ',q:'Είσαι ο εκτελεστής με ατού. Ποια είναι συχνά η πρώτη σου δουλειά;',
+  opts:['Να τραβήξεις τα ατού των αντιπάλων','Να ρίξεις όλους τους άσσους','Να κάνεις πάσο'],a:0,
+  ex:'«Τράβα τα ατού» ώστε οι αντίπαλοι να μη σου κόβουν τα καλά φύλλα αργότερα.'},
+ {id:'br5',cat:'Μπριτζ',q:'Τι είναι το «ντάμι» (dummy);',
+  opts:['Ο πιο αδύναμος παίκτης','Τα ανοιχτά φύλλα του παρτενέρ του εκτελεστή','Ένα ειδικό φύλλο'],a:1,
+  ex:'Ο συμπαίκτης του εκτελεστή κατεβάζει τα φύλλα του ανοιχτά (dummy) και τα παίζει ο εκτελεστής.'},
+ // --- Πρέφα ---
+ {id:'pr2',cat:'Πρέφα',q:'Με πόσα φύλλα παίζεται η πρέφα;',
+  opts:['52','32 (από 7 και πάνω)','40'],a:1,
+  ex:'32 φύλλα: 7, 8, 9, 10, J, Q, K, A σε κάθε χρώμα.'},
+ {id:'pr3',cat:'Πρέφα',q:'Δηλώνεις 6 μπάζες. Τι σημαίνει;',
+  opts:['Θα χάσεις 6','Αναλαμβάνεις να κερδίσεις 6 λεβέ','Μοιράζεις 6 φύλλα'],a:1,
+  ex:'Η δήλωση = υπόσχεση για τουλάχιστον τόσες μπάζες με το ατού που όρισες.'},
+ {id:'pr4',cat:'Πρέφα',q:'Ως αντίπαλος του δηλωτή, τι κάνεις με τα ατού σου;',
+  opts:['Τα κρατάω άχρηστα','Τα «τραβάω» για να αδυνατίσω τον δηλωτή','Τα πετάω πρώτα'],a:1,
+  ex:'Τραβώντας ατού μειώνεις τη δύναμη κοψίματος του δηλωτή και τον ρίχνεις πιο εύκολα.'},
+ // --- Δηλωτή ---
+ {id:'dl1',cat:'Δηλωτή',q:'Στο τραπέζι υπάρχουν 2 και 4. Παίζεις 6. Τι γίνεται;',
+  cards:[{r:'6',s:'♠'}],
+  opts:['Τίποτα','Μαζεύεις 2+4=6 (άθροισμα)','Χάνεις τη σειρά'],a:1,
+  ex:'Στη Δηλωτή μαζεύεις και με άθροισμα: 2+4=6 = μάζεμα.'},
+ {id:'dl2',cat:'Δηλωτή',q:'Ποιο φύλλο δίνει 2 πόντους;',
+  opts:['Ο Άσσος','Το 10 Καρό','Ο Βαλές'],a:1,
+  ex:'Στη Δηλωτή το 10♦ αξίζει 2 πόντους· κάθε άσσος 1, το 2♣ 1.'},
+ {id:'dl3',cat:'Δηλωτή',q:'Πόσους πόντους δίνει η Ξερή;',
+  opts:['1','5','10'],a:2,
+  ex:'Κάθε Ξερή (μάζεμα των τελευταίων φύλλων από κάτω) = 10 πόντοι.'},
+ // --- Μπιρίμπα ---
+ {id:'bi1',cat:'Μπιρίμπα',q:'Τι είναι η «μανούλα» (καθαρή);',
+  opts:['Τριάδα/κέντα ΧΩΡΙΣ τζόκερ','Ο κόκκος','Ένα ζευγάρι'],a:0,
+  ex:'Μανούλα = συνδυασμός χωρίς μπαλαντέρ· δίνει πολύ περισσότερους πόντους από τις κοινές.'},
+ {id:'bi2',cat:'Μπιρίμπα',q:'Τι είναι ο «κόκκος»;',
+  opts:['Ένα κόκκινο φύλλο','Κρυφή δεσμίδα 11 φύλλων που παίρνεις όταν αδειάσεις','Ο τζόκερ'],a:1,
+  ex:'Ο κόκκος είναι εφεδρικά 11 φύλλα· τα παίρνεις αφού αδειάσεις το χέρι σου και συνεχίζεις.'},
+ {id:'bi3',cat:'Μπιρίμπα',q:'Πότε ΔΕΝ πρέπει να κλείσεις;',
+  opts:['Ποτέ δεν κλείνω','Όταν ο παρτενέρ σου έχει πολλά φύλλα στο χέρι','Πάντα κλείνω αμέσως'],a:1,
+  ex:'Αν κλείσεις ενώ ο παρτενέρ κρατά πολλά, χάνετε πόντους ποινής. Συντόνισε μαζί του.'},
+ // --- Θανάσης ---
+ {id:'th1',cat:'Θανάσης',q:'Ποιος είναι ο στόχος στον Θανάση;',
+  opts:['Να μαζέψεις μπάζες','Να κατεβάσεις 2 τριάδες + 1 τετράδα','Να μπλοφάρεις'],a:1,
+  ex:'Στόχος: να σχηματίσεις και να κατεβάσεις πρώτος δύο τριάδες και μία τετράδα.'},
+ {id:'th2',cat:'Θανάσης',q:'Στο τέλος, ποιος κερδίζει στη βαθμολογία;',
+  opts:['Ο πιο πολλοί πόντοι','Ο λιγότεροι πόντοι στο χέρι','Ο πιο γρήγορος'],a:1,
+  ex:'Οι υπόλοιποι μετρούν ό,τι έμεινε στο χέρι (φιγούρες=10). Κερδίζει ο λιγότερος.'},
+ // --- Ξερή / Κουμ Καν / Πόκα extra ---
+ {id:'xe3',cat:'Ξερή',q:'Πόσους πόντους δίνει το 10♦ (δεκάρι καρό);',
+  opts:['1','2','10'],a:1,
+  ex:'Το 10♦ αξίζει 2 πόντους — από τα πιο πολύτιμα φύλλα στην Ξερή.'},
+ {id:'kk3',cat:'Κουμ Καν',q:'Πόσους πόντους ποινής μετρά ο τζόκερ που μένει στο χέρι;',
+  opts:['10','20','0'],a:1,
+  ex:'Ο τζόκερ κοστίζει 20 πόντους ποινής — γι'+"'"+'αυτό μην τον αφήνεις αχρησιμοποίητο.'},
+ {id:'po2',cat:'Πόκα',q:'Ο αντίπαλος κάνει «σερβί» (0 αλλαγές). Τι πιθανότατα σημαίνει;',
+  opts:['Πολύ δυνατό χέρι ή μπλόφα','Σίγουρα αδύναμο','Τίποτα'],a:0,
+  ex:'Το σερβί δείχνει έτοιμο δυνατό χέρι (κέντα/χρώμα/φουλ) ή τολμηρή μπλόφα. Πρόσεξε το ποντάρισμά του.'},
+
+ // --- Μπουρλότ (Belote) ---
+ {id:'bo1',cat:'Μπουρλότ',q:'Ποιο είναι το ισχυρότερο φύλλο στο ΑΤΟΥ (κόζι);',
+  opts:['Ο Άσσος','Ο Βαλές (J)','Ο Ρήγας'],a:1,
+  ex:'Στο ατού: J > 9 > A > 10 > K > Q > 8 > 7. Ο Βαλές (κόζι) είναι το δυνατότερο φύλλο του παιχνιδιού.'},
+ {id:'bo2',cat:'Μπουρλότ',q:'Πόσους πόντους αξίζει ο Βαλές του ατού;',
+  opts:['2','11','20'],a:2,
+  ex:'Ο J ατού αξίζει 20 πόντους, το 9 ατού 14 — τα δύο πολυτιμότερα φύλλα.'},
+ {id:'bo3',cat:'Μπουρλότ',q:'Τι είναι το «Μπελότ–Ρεμπελότ»;',
+  opts:['Ντάμα + Ρήγας ατού (+20)','Τέσσερις άσσοι','Η τελευταία μπάζα'],a:0,
+  ex:'Όποιος κρατά Q και K του ατού δηλώνει «Μπελότ» και «Ρεμπελότ» όταν τα παίζει, κερδίζοντας +20 πόντους.'},
+ {id:'bo4',cat:'Μπουρλότ',q:'Πόσοι πόντοι μοιράζονται συνολικά (με την τελευταία μπάζα);',
+  opts:['100','162','200'],a:1,
+  ex:'Τα φύλλα αθροίζουν 152 + 10 για την τελευταία μπάζα = 162 πόντοι ανά παρτίδα (χωρίς τις δηλώσεις).'},
+ // --- Κανάστα ---
+ {id:'ca1',cat:'Κανάστα',q:'Τι είναι η «κανάστα»;',
+  opts:['Ένωση 7 φύλλων ίδιας αξίας','Ένα ζευγάρι','Ο τζόκερ'],a:0,
+  ex:'Κανάστα = ολοκληρωμένη ένωση 7 φύλλων. Χρειάζεσαι τουλάχιστον μία για να κλείσεις.'},
+ {id:'ca2',cat:'Κανάστα',q:'Ποια φύλλα είναι μπαλαντέρ (wild);',
+  opts:['Μόνο τα τζόκερ','Τα τζόκερ ΚΑΙ όλα τα 2','Οι άσσοι'],a:1,
+  ex:'Wild είναι τα τζόκερ (50 π.) και όλα τα 2 (20 π.). Μια ένωση δεν παίρνει πάνω από 3 μπαλαντέρ.'},
+ {id:'ca3',cat:'Κανάστα',q:'Ποια κανάστα αξίζει περισσότερο;',
+  opts:['Η μικτή (με μπαλαντέρ)','Η καθαρή (χωρίς μπαλαντέρ)','Είναι ίδιες'],a:1,
+  ex:'Καθαρή κανάστα = 500 πόντοι, μικτή = 300. Πάντα κυνήγα καθαρές όταν γίνεται.'},
+ {id:'ca4',cat:'Κανάστα',q:'Τι ιδιαίτερο έχουν τα κόκκινα 3 (♥/♦);',
+  opts:['Είναι μπαλαντέρ','Δίνουν μπόνους 100 πόντους το καθένα','Δεν παίζουν'],a:1,
+  ex:'Τα κόκκινα 3 κατεβαίνουν αμέσως και δίνουν +100 το καθένα (500 και τα 4) — αλλά μετρούν αρνητικά αν μείνουν χωρίς κανάστα.'},
+ // --- Σκαμπίλι ---
+ {id:'sk1',cat:'Σκαμπίλι',q:'Ποιος μαζεύει τη μπάζα στο Σκαμπίλι;',
+  opts:['Ο πρώτος που έριξε','Το δυνατότερο φύλλο του χρώματος','Ο τελευταίος'],a:1,
+  ex:'Κάθε παίκτης ρίχνει ένα φύλλο· το δυνατότερο φύλλο του χρώματος που παίχτηκε μαζεύει όλη τη μπάζα.'},
+ {id:'sk2',cat:'Σκαμπίλι',q:'Ποια φύλλα μετρούν κυρίως πόντους;',
+  opts:['Τα χαμηλά','Άσσοι & φιγούρες','Μόνο τα ατού'],a:1,
+  ex:'Οι πόντοι προέρχονται κυρίως από Άσσους & φιγούρες που μαζεύεις (η ακριβής αξία ποικίλλει ανά περιοχή).'},
+ {id:'sk3',cat:'Σκαμπίλι',q:'Ποια ικανότητα βοηθά περισσότερο;',
+  opts:['Η τύχη μόνο','Η μνήμη — ποια δυνατά φύλλα έπεσαν','Η ταχύτητα χεριού'],a:1,
+  ex:'Όπως σε όλα τα παιχνίδια μπάζας, η μνήμη (ποιοι Άσσοι/φιγούρες έχουν παιχτεί) είναι το κλειδί.'},
+ // --- Πάστρα / Κολτσίνα ---
+ {id:'pa1',cat:'Πάστρα',q:'Στο τραπέζι υπάρχουν 5 και 2. Παίζεις 7. Τι γίνεται;',
+  cards:[{r:'7',s:'♠'}],
+  opts:['Τίποτα','Μαζεύεις 5+2=7 (άθροισμα)','Χάνεις σειρά'],a:1,
+  ex:'Στην Πάστρα μαζεύεις με ίδια αξία Ή άθροισμα: 5+2=7 → μάζεμα.'},
+ {id:'pa2',cat:'Πάστρα',q:'Τι είναι η «πάστρα» (σκούπα);',
+  opts:['Όταν χάνεις','Όταν μαζεύεις ΟΛΑ τα φύλλα του τραπεζιού (+1)','Ένα ειδικό φύλλο'],a:1,
+  ex:'Πάστρα = καθαρίζεις όλο το τραπέζι με μία κίνηση → +1 πόντος bonus.'},
+ {id:'pa3',cat:'Πάστρα',q:'Μαζεύονται οι φιγούρες (J/Q/K) με άθροισμα;',
+  opts:['Ναι','Όχι — μόνο με ίδια φιγούρα','Πάντα'],a:1,
+  ex:'Οι φιγούρες δεν αθροίζονται· μαζεύονται μόνο με άλλη ίδια φιγούρα.'},
+ // --- Σκατά (Γάιδαρος) ---
+ {id:'ga1',cat:'Γάιδαρος',q:'Πώς κερδίζεις (σώζεσαι) στον Γάιδαρο;',
+  opts:['Μαζεύοντας καρέ (4 όμοια) πρώτος','Ρίχνοντας όλα τα φύλλα','Μαζεύοντας μπάζες'],a:0,
+  ex:'Στόχος: 4 όμοια φύλλα πρώτος. Ο τελευταίος χωρίς καρέ είναι ο «γάιδαρος».'},
+ {id:'ga2',cat:'Γάιδαρος',q:'Ποιο φύλλο να δίνεις στον διπλανό;',
+  opts:['Το πιο άχρηστο/μονό (εκτός στόχου)','Πάντα άσσο','Δεν έχει σημασία'],a:0,
+  ex:'Κράτα την τετράδα που κυνηγάς· δίνε τα μονά, άσχετα φύλλα.'},
+ // --- Μουτζούρης ---
+ {id:'mo1',cat:'Μουτζούρης',q:'Ποιος χάνει στον Μουτζούρη;',
+  opts:['Όποιος αδειάσει πρώτος','Όποιος μείνει με το μονό φύλλο','Ο πιο αργός'],a:1,
+  ex:'Χάνει όποιος μείνει στο τέλος με το μοναδικό φύλλο χωρίς ταίρι (τον μουτζούρη).'},
+ {id:'mo2',cat:'Μουτζούρης',q:'Τι κάνεις μόλις τραβήξεις φύλλο;',
+  opts:['Το κρατάς πάντα','Τσεκάρεις για ζευγάρι & το πετάς','Το δίνεις πίσω'],a:1,
+  ex:'Αν το νέο φύλλο κάνει ζευγάρι με φύλλο σου, πέτα το ζευγάρι αμέσως.'},
+ // --- Χάλι Γκάλι ---
+ {id:'hg1',cat:'Χάλι Γκάλι',q:'Πότε χτυπάς το καμπανάκι;',
+  opts:['Όταν φανούν 4 ίδια φρούτα','Όταν φανούν ΑΚΡΙΒΩΣ 5 ίδια φρούτα','Όποτε θέλεις'],a:1,
+  ex:'Μόνο όταν το σύνολο ενός φρούτου στις ανοιχτές κάρτες είναι ακριβώς 5.'},
+ {id:'hg2',cat:'Χάλι Γκάλι',q:'Τι παθαίνεις αν χτυπήσεις λάθος;',
+  opts:['Τίποτα','Ποινή — δίνεις κάρτες στους άλλους','Κερδίζεις'],a:1,
+  ex:'Λάθος χτύπημα = ποινή: δίνεις μία κάρτα σε κάθε αντίπαλο.'},
+ // --- Phase 10 ---
+ {id:'ph1',cat:'Phase 10',q:'Ποια είναι η Φάση 1;',
+  opts:['1 κέντα των 7','2 σετ των 3','7 ίδιου χρώματος'],a:1,
+  ex:'Φάση 1 = δύο σετ των 3 (δηλ. δύο τριάδες ίδιων αριθμών).'},
+ {id:'ph2',cat:'Phase 10',q:'Τι διαφορά έχει το «σετ» από την «κέντα»;',
+  opts:['Σετ=ίδιοι αριθμοί, Κέντα=διαδοχικοί','Είναι το ίδιο','Σετ=ίδιο χρώμα'],a:0,
+  ex:'Σετ = ίδιοι αριθμοί (χρώμα αδιάφορο). Κέντα = διαδοχικοί αριθμοί στη σειρά.'},
+ {id:'ph3',cat:'Phase 10',q:'Πώς χρησιμοποιείς τον μπαλαντέρ (wild);',
+  opts:['Δεν παίζει','Αντικαθιστά οποιοδήποτε φύλλο για να κλείσεις σετ/κέντα','Μόνο ως 12'],a:1,
+  ex:'Ο μπαλαντέρ γίνεται όποιο φύλλο θες — φύλαξέ τον για δύσκολα κλεισίματα.'}
+];
+let curCat='Όλες';
+function renderPuzzles(){
+  const cats=['Όλες',...new Set(PUZZLES.map(p=>p.cat))];
+  document.getElementById('puzzleCats').innerHTML=cats.map(c=>`<button class="btn sm ${c===curCat?'primary':'ghost'}" onclick="setCat('${c}')">${c}</button>`).join('');
+  const list=PUZZLES.filter(p=>curCat==='Όλες'||p.cat===curCat);
+  document.getElementById('puzzleHost').innerHTML=list.map(p=>{
+    const done=S.puzzles[p.id];
+    return `<div class="panel" style="margin-bottom:14px" id="pz-${p.id}">
+      <div style="display:flex;justify-content:space-between;gap:10px"><span class="tag gold">${p.cat}</span>${done?'<span class="badge-done">✓ Λυμένο</span>':''}</div>
+      <p style="margin:10px 0"><b>${p.q}</b></p>
+      ${p.cards?`<div class="hand" style="margin:10px 0">${p.cards.map(c=>cardEl(c,'lg')).join('')}</div>`:''}
+      <div id="opts-${p.id}">${p.opts.map((o,i)=>`<button class="btn opt" onclick="answerPz('${p.id}',${i})">${o}</button>`).join('')}</div>
+      <div id="ex-${p.id}"></div>
+    </div>`;
+  }).join('')||'<p class="sub">Καμία άσκηση.</p>';
+}
+function setCat(c){curCat=c;renderPuzzles();}
+function answerPz(id,i){
+  const p=PUZZLES.find(x=>x.id===id);const box=document.getElementById('opts-'+id);
+  [...box.children].forEach((b,ix)=>{b.disabled=true;if(ix===p.a)b.classList.add('correct');if(ix===i&&i!==p.a)b.classList.add('wrong');});
+  const correct=i===p.a;
+  document.getElementById('ex-'+id).innerHTML=`<div class="callout ${correct?'gold':''}">${correct?'✅ Σωστά! ':'❌ '}${p.ex}</div>`;
+  if(correct&&!S.puzzles[id]){S.puzzles[id]=true;save();addXP(20,'άσκηση λυμένη');}
+  else if(correct){toast('Σωστά!','good');}
+  else toast('Δοκίμασε να το θυμάσαι!','bad');
+  checkAch();
+}
+
+/* ============================================================
+   ACHIEVEMENTS & PROGRESS
+   ============================================================ */
+const ACH=[
+ {id:'first_lesson',ic:'📖',t:'Πρώτο μάθημα',d:'Ολοκλήρωσε 1 μάθημα',chk:()=>Object.keys(S.lessons).length>=1},
+ {id:'scholar',ic:'🎓',t:'Μελετηρός',d:'Ολοκλήρωσε 5 μαθήματα',chk:()=>Object.keys(S.lessons).length>=5},
+ {id:'all_lessons',ic:'📚',t:'Πάνσοφος',d:'Ολοκλήρωσε όλα τα μαθήματα',chk:()=>Object.keys(S.lessons).length>=Object.keys(LESSONS).length},
+ {id:'first_game',ic:'🃏',t:'Πρώτη παρτίδα',d:'Παίξε 1 παρτίδα',chk:()=>S.played>=1},
+ {id:'first_win',ic:'🥇',t:'Πρώτη νίκη',d:'Κέρδισε 1 παρτίδα',chk:()=>S.wins_total>=1},
+ {id:'winner',ic:'🏆',t:'Νικητής',d:'Κέρδισε 10 παρτίδες',chk:()=>S.wins_total>=10},
+ {id:'puzzler',ic:'🧩',t:'Λύτης',d:'Λύσε 5 ασκήσεις',chk:()=>Object.values(S.puzzles).filter(Boolean).length>=5},
+ {id:'all_puzzles',ic:'🧠',t:'Στρατηγικός νους',d:'Λύσε όλες τις ασκήσεις',chk:()=>Object.values(S.puzzles).filter(Boolean).length>=PUZZLES.length},
+ {id:'pro',ic:'👑',t:'Επαγγελματίας',d:'Φτάσε 2200 XP',chk:()=>S.xp>=2200}
+];
+function checkAch(){let changed=false;ACH.forEach(a=>{if(!S.ach[a.id]&&a.chk()){S.ach[a.id]=Date.now();changed=true;toast('🏅 Επίτευγμα: '+a.t,'good');}});if(changed)save();}
+function renderProgress(){
+  const L=levelOf(S.xp);
+  document.getElementById('pgLevelName').textContent=(L.idx+1)+'. '+L.name;
+  document.getElementById('pgLevelDesc').textContent=L.d;
+  document.getElementById('pgXp').textContent=S.xp;
+  const next=LEVELS[L.idx+1];
+  const base=L.min,top=next?next.min:L.min;
+  const pct=next?Math.min(100,Math.round((S.xp-base)/(top-base)*100)):100;
+  document.getElementById('pgBar').style.width=pct+'%';
+  document.getElementById('pgNext').textContent=next?`${top-S.xp} XP για το επόμενο επίπεδο: ${next.name}`:'Έφτασες στο ανώτατο επίπεδο! 🏆';
+  document.getElementById('achBox').innerHTML=ACH.map(a=>{const on=S.ach[a.id];
+    return `<div class="card" style="opacity:${on?1:.5};text-align:center">
+      <div style="font-size:30px">${a.ic}</div><b>${a.t}</b><div class="sub">${a.d}</div>
+      <div style="margin-top:6px">${on?'<span class="badge-done">✓ Ξεκλειδώθηκε</span>':'<span class="tag">Κλειδωμένο</span>'}</div></div>`;}).join('');
+  const rows=GAMES.filter(g=>g.playable).map(g=>{const pl=S.games[g.id]||0,w=S.wins[g.id]||0;
+    return `<tr><td>${g.ic} ${g.name}</td><td>${pl}</td><td>${w}</td><td>${pl?Math.round(w/pl*100):0}%</td></tr>`;}).join('');
+  document.getElementById('statTable').innerHTML=`<table class="rank"><tr><th>Παιχνίδι</th><th>Παρτίδες</th><th>Νίκες</th><th>%</th></tr>${rows}</table>`;
+}
+function resetAll(){if(confirm('Σίγουρα θέλεις να μηδενίσεις ΟΛΗ την πρόοδο;')){S={...DEFAULT};save();refreshHeader();go('home');toast('Η πρόοδος μηδενίστηκε.');}}
+
+/* ============================================================
+   SHARED HELPERS for trick & meld games
+   ============================================================ */
+function meldScore(cards){
+  const jokers=cards.filter(c=>c.joker).length;
+  const real=cards.filter(c=>!c.joker);
+  let melded=0;const used=new Array(real.length).fill(false);
+  const byRank={};real.forEach((c,i)=>{(byRank[c.r]=byRank[c.r]||[]).push(i);});
+  Object.values(byRank).forEach(idxs=>{if(idxs.length>=3){idxs.forEach(i=>used[i]=true);melded+=idxs.length;}});
+  const bySuit={};real.forEach((c,i)=>{if(used[i])return;(bySuit[c.s]=bySuit[c.s]||[]).push({v:RVAL[c.r],i});});
+  Object.values(bySuit).forEach(arr=>{arr.sort((a,b)=>a.v-b.v);let run=[];const flush=()=>{if(run.length>=3){run.forEach(x=>used[x.i]=true);melded+=run.length;}run=[];};for(let k=0;k<arr.length;k++){if(run.length&&arr[k].v===run[run.length-1].v+1)run.push(arr[k]);else{flush();run=[arr[k]];}}flush();});
+  return melded+jokers;
+}
+function legalCards(hand,led){if(led==null)return hand.slice();const f=hand.filter(c=>c.s===led);return f.length?f:hand.slice();}
+function trickWinner(plays,trump){ // plays:[{p,c}]
+  const led=plays[0].c.s;
+  const rank=c=>(c.s===trump&&trump?100+RVAL[c.r]:(c.s===led?RVAL[c.r]:-1));
+  let best=plays[0];for(const pl of plays)if(rank(pl.c)>rank(best.c))best=pl;return best.p;
+}
+function hcp(hand){return hand.reduce((s,c)=>s+(({A:4,K:3,Q:2,J:1})[c.r]||0),0);}
+function sortHandBySuit(h){h.sort((a,b)=>{if(a.joker)return 1;if(b.joker)return -1;if(a.s!==b.s)return SUITS.indexOf(a.s)-SUITS.indexOf(b.s);return RVAL[b.r]-RVAL[a.r];});}
+
+/* ============================================================
+   GENERIC RUMMY (Θανάσης, Μπιρίμπα)
+   ============================================================ */
+function rummyEngine(cfg){
+  const st={over:false,logs:[]};
+  let deck=[];for(let d=0;d<cfg.decks;d++)deck=deck.concat(makeDeck());
+  for(let j=0;j<cfg.jokers;j++)deck.push({r:'★',s:'joker',joker:true});
+  shuffle(deck);
+  const hands=[[],[]];for(let p=0;p<2;p++)for(let i=0;i<cfg.handSize;i++)hands[p].push(deck.pop());
+  const discard=[deck.pop()];let turn=0,drawn=false;
+  function log(m){st.logs.push(m);}
+  function isWin(cards){return cards.length>=cfg.handSize+1 && meldScore(cards)>=cards.length;}
+  function reshuffle(){const t=discard.pop();deck=shuffle(discard.splice(0));discard.push(t);log('Ανακάτεμα καμένων.');}
+  function render(anim){sortHandBySuit(hands[0]);if(anim)fx('deal');
+    host().innerHTML=`<div class="felt">
+      <div class="seat ${turn===1?'turn':''}" style="max-width:340px;margin:0 auto 10px">
+        <div class="nm"><span>🤖 Αντίπαλος</span><span class="stk">${hands[1].length} φύλλα</span></div>
+        <div class="hand tight" style="margin-top:6px">${hands[1].map(()=>cardEl(null,'mini')).join('')}</div></div>
+      <div style="display:flex;gap:24px;justify-content:center;align-items:center;margin:16px 0">
+        <div style="text-align:center"><div class="sub">Στοίβα (${deck.length})</div>
+          <div onclick="_rmDeck()">${cardEl(null,'lg'+(turn===0&&!drawn?' clk':''))}</div></div>
+        <div style="text-align:center"><div class="sub">Καμένα</div>
+          <div onclick="_rmDisc()">${discard.length?cardEl(discard[discard.length-1],'lg'+(turn===0&&!drawn?' clk':'')):cardEl(null,'lg dim')}</div></div>
+      </div>
+      <div class="seat ${turn===0?'turn':''}" style="max-width:680px;margin:0 auto">
+        <div class="nm"><span>🧑 Εσύ</span><span class="stk">Συνδυασμοί: ${meldScore(hands[0])}/${hands[0].length}</span></div>
+        <div class="hand" style="margin-top:8px">${hands[0].map((c,i)=>cardEl(c,'clk'+(st._sel===i?' sel':''))).join('')}</div></div></div>
+      <div class="controls"><span class="sub">${turn===0?(drawn?'Διάλεξε φύλλο για πέταμα.':'Τράβα φύλλο.'):'Παίζει ο αντίπαλος…'}</span>
+        ${turn===0&&drawn?'<button class="btn primary" onclick="_rmDiscard()">Πέτα επιλεγμένο</button>':''}
+        ${turn===0&&drawn&&isWin(hands[0])?'<button class="btn gold" onclick="_rmWin()">🏆 ΚΛΕΙΣΕ!</button>':''}</div>
+      <div class="log" id="rmLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    fx('');
+    if(turn===0&&drawn)host().querySelectorAll('.seat:last-of-type .pc').forEach((el,i)=>el.onclick=()=>{st._sel=i;render();});
+    const lg=document.getElementById('rmLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._rmDeck=()=>{if(turn!==0||drawn||st.over)return;if(!deck.length)reshuffle();hands[0].push(deck.pop());drawn=true;st._sel=null;log('Τράβηξες από τη στοίβα.');render();};
+  window._rmDisc=()=>{if(turn!==0||drawn||st.over||!discard.length)return;hands[0].push(discard.pop());drawn=true;st._sel=null;log('Πήρες από τα καμένα.');render();};
+  window._rmDiscard=()=>{if(turn!==0||!drawn||st._sel==null)return;const c=hands[0].splice(st._sel,1)[0];discard.push(c);st._sel=null;drawn=false;log('Πέταξες '+(c.joker?'★':c.r+c.s)+'.');turn=1;render();setTimeout(ai,750);};
+  window._rmWin=()=>{if(!isWin(hands[0]))return;st.over=true;log('🏆 Έκλεισες! Νίκη!');finish(true);};
+  function conn(c,hand){if(c.joker)return 100;let s=0;hand.forEach(o=>{if(o===c||o.joker)return;if(o.r===c.r)s+=3;else if(o.s===c.s&&Math.abs(RVAL[o.r]-RVAL[c.r])<=2)s+=2;});return s;}
+  function ai(){
+    if(st.over)return;
+    const top=discard[discard.length-1];let took=false;
+    if(top){const b=meldScore(hands[1]);hands[1].push(top);const better=meldScore(hands[1])>b;const near=AILEVEL>=2&&conn(top,hands[1])>=4;
+      if(better||near){discard.pop();took=true;log('AI πήρε από καμένα.');}else hands[1].pop();}
+    if(!took){if(!deck.length)reshuffle();hands[1].push(deck.pop());log('AI τράβηξε.');}
+    if(isWin(hands[1])){st.over=true;log('🤖 Ο αντίπαλος έκλεισε.');render();return finish(false);}
+    let bi=0,bv=1e9;hands[1].forEach((c,i)=>{const test=hands[1].filter((_,j)=>j!==i);const gain=meldScore(hands[1])-meldScore(test);
+      const keep=gain*100+conn(c,hands[1])*4-RVAL[c.r]*0.2+(c.joker?999:0);if(keep<bv){bv=keep;bi=i;}});
+    if(Math.random()<aiRnd())bi=Math.floor(Math.random()*hands[1].length);
+    const c=hands[1].splice(bi,1)[0];discard.push(c);log('AI πέταξε '+(c.joker?'★':c.r+c.s)+'.');turn=0;drawn=false;render();
+  }
+  function finish(won){render();host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':'Ο αντίπαλος κέρδισε.'}</h3><button class="btn primary" onclick="startGame('${cfg.id}')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame(cfg.id,won);}
+  window._activeGame=st;log('Στόχος: κάνε όλα τα φύλλα σου τριάδες/κέντες'+(cfg.jokers?' (★=τζόκερ)':'')+' και κλείσε.');render(true);
+}
+GAME_ENGINES.thanasis=()=>rummyEngine({id:'thanasis',decks:1,jokers:0,handSize:10});
+GAME_ENGINES.biriba=()=>rummyEngine({id:'biriba',decks:2,jokers:2,handSize:11});
+GAME_ENGINES.canasta=()=>rummyEngine({id:'canasta',decks:2,jokers:2,handSize:11});
+
+/* ============================================================
+   ΔΗΛΩΤΗ (capture game)
+   ============================================================ */
+GAME_ENGINES.diloti=function(){
+  const st={over:false,logs:[],deck:shuffle(makeDeck()),table:[],hands:[[],[]],piles:[[],[]],scores:[0,0],xeri:[0,0],turn:0,last:0};
+  for(let i=0;i<4;i++)st.table.push(st.deck.pop());
+  deal();
+  function deal(){for(let p=0;p<2;p++)for(let i=0;i<6;i++)if(st.deck.length)st.hands[p].push(st.deck.pop());}
+  function log(m){st.logs.push(m);}
+  function numV(c){if(c.r==='A')return 1;if(c.r==='J'||c.r==='Q'||c.r==='K')return null;return RVAL[c.r];}
+  function pointVal(c){if(c.r==='A')return 1;if(c.r==='10'&&c.s==='♦')return 2;if(c.r==='2'&&c.s==='♣')return 1;return 0;}
+  function subsetSum(pool,target){const n=pool.length;for(let m=1;m<(1<<n);m++){let s=0,a=[];for(let i=0;i<n;i++)if(m&(1<<i)){s+=pool[i].nv;a.push(pool[i].i);}if(s===target)return a;}return null;}
+  function capture(card){
+    const idx=[];st.table.forEach((c,i)=>{if(c.r===card.r)idx.push(i);});
+    const v=numV(card);
+    if(v!=null){const pool=[];st.table.forEach((c,i)=>{if(idx.includes(i))return;const nv=numV(c);if(nv!=null)pool.push({i,nv});});const sub=subsetSum(pool,v);if(sub)sub.forEach(i=>idx.push(i));}
+    return idx.length?[...new Set(idx)]:null;
+  }
+  function play(p,handIdx){
+    if(st.over||st.turn!==p)return;
+    const card=st.hands[p].splice(handIdx,1)[0];const who=p===0?'Εσύ':'AI';
+    const cap=capture(card);
+    if(cap){const wasCards=st.table.length;const got=cap.sort((a,b)=>b-a).map(i=>st.table.splice(i,1)[0]);
+      st.piles[p].push(...got,card);st.last=p;
+      let xe=false;if(st.table.length===0&&wasCards>0){st.xeri[p]++;st.scores[p]+=10;xe=true;}
+      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1} φύλλων${xe?' <b>ΞΕΡΗ! +10</b>':''}`);
+    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);}
+    if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
+    if(st.hands[0].length===0&&st.hands[1].length===0&&!st.deck.length)return end();
+    st.turn=1-p;render();if(st.turn===1)setTimeout(ai,700);
+  }
+  function ai(){
+    if(st.over)return;const hand=st.hands[1];let best=-1,bestScore=-1;
+    hand.forEach((c,i)=>{const save=st.table.slice();const cap=capture(c);let sc=-1;
+      if(cap){sc=100+cap.reduce((a,i)=>a+pointVal(st.table[i]),0)*10+cap.length;}st.table=save;
+      if(sc>bestScore){bestScore=sc;best=i;}});
+    if(bestScore<0){let lo=0,lv=99;hand.forEach((c,i)=>{const v=numV(c)==null?11:numV(c);if(v<lv){lv=v;lo=i;}});best=lo;}
+    if(Math.random()<aiRnd())best=Math.floor(Math.random()*hand.length);
+    play(1,best);
+  }
+  function end(){
+    st.over=true;if(st.table.length){st.piles[st.last].push(...st.table);st.table=[];}
+    for(let p=0;p<2;p++)st.piles[p].forEach(c=>st.scores[p]+=pointVal(c));
+    if(st.piles[0].length>=27)st.scores[0]+=4;else if(st.piles[1].length>=27)st.scores[1]+=4;
+    const won=st.scores[0]>st.scores[1];render();
+    document.getElementById('dlMsg').innerHTML=`<b style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':(st.scores[0]===st.scores[1]?'🤝 Ισοπαλία':'Έχασες.')}</b> ${st.scores[0]}–${st.scores[1]} (φύλλα ${st.piles[0].length}/${st.piles[1].length}, ξερές ${st.xeri[0]}/${st.xeri[1]})`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('diloti')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('diloti',won);
+  }
+  function render(anim){if(anim)fx('deal');
+    host().innerHTML=`<div class="felt">
+      <div class="seat ${st.turn===1?'turn':''}" style="max-width:320px;margin:0 auto 10px">
+        <div class="nm"><span>🤖 Αντίπαλος</span><span class="stk">Φύλλα: ${st.piles[1].length}</span></div>
+        <div class="hand tight" style="margin-top:6px">${st.hands[1].map(()=>cardEl(null,'mini')).join('')}</div></div>
+      <div style="text-align:center;margin:14px 0"><div class="sub">Τραπέζι${st.deck.length?' · κλειστά: '+st.deck.length:''}</div>
+        <div class="hand" style="justify-content:center;margin-top:6px;min-height:70px">${st.table.length?st.table.map(c=>cardEl(c)).join(''):'<span class="sub">(άδειο)</span>'}</div></div>
+      <div class="seat ${st.turn===0?'turn':''}" style="max-width:640px;margin:0 auto">
+        <div class="nm"><span>🧑 Εσύ · μάζεμα με ίδια αξία ή άθροισμα</span><span class="stk">Φύλλα: ${st.piles[0].length}</span></div>
+        <div class="hand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'lg clk')).join('')}</div></div></div>
+      <div class="controls"><span class="sub" id="dlMsg">${st.turn===0?'Η σειρά σου.':'Παίζει ο αντίπαλος…'}</span></div>
+      <div class="log" id="dlLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    fx('');
+    if(st.turn===0)host().querySelectorAll('.seat:last-of-type .pc').forEach((el,i)=>el.onclick=()=>play(0,i));
+    const lg=document.getElementById('dlLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Μάζεμα: ίδια αξία ή άθροισμα (π.χ. 6 = 2+4). Καθάρισε το τραπέζι για ΞΕΡΗ (+10).');render(true);
+};
+
+/* ============================================================
+   ΠΡΕΦΑ (trick-taking, 3 players, 32 cards)
+   ============================================================ */
+GAME_ENGINES.prefa=function(){
+  const R32=['7','8','9','10','J','Q','K','A'];
+  const SUITNM={'♠':'Μπαστούνι','♣':'Σπαθί','♦':'Καρό','♥':'Κούπα'};
+  const TPRI={'♠':4,'♣':3,'♦':2,'♥':1};
+  const st={over:false,logs:[],phase:'bid',hands:[[],[],[]],trump:null,declarer:null,contract:0,leader:0,plays:[],tricks:[0,0,0],trickNo:0,talon:[]};
+  let deck=shuffle(makeDeck(R32));
+  for(let p=0;p<3;p++)for(let i=0;i<10;i++)st.hands[p].push(deck.pop());
+  st.talon=[deck.pop(),deck.pop()];
+  st.bids=[null,null,null];
+  function log(m){st.logs.push(m);}
+  function suitStrength(hand,s){let n=0,hp=0;hand.forEach(c=>{if(c.s===s)n++;hp+=({A:4,K:3,Q:2,J:1})[c.r]||0;});return n+hp/3;}
+  function bestBid(hand){let bs='♠',bv=-1;SUITS.forEach(s=>{const v=suitStrength(hand,s);if(v>bv){bv=v;bs=s;}});
+    let lvl=6;if(bv>=8)lvl=7;if(bv>=10)lvl=8;if(bv<6)return {pass:true};return {lvl,suit:bs};}
+  function startBidding(){
+    for(let p=1;p<3;p++)st.bids[p]=bestBid(st.hands[p]);
+    st.phase='bid';render();
+  }
+  function resolveBids(){
+    let win=null;for(let p=0;p<3;p++){const b=st.bids[p];if(!b||b.pass)continue;if(win===null||b.lvl>st.bids[win].lvl||(b.lvl===st.bids[win].lvl&&TPRI[b.suit]>TPRI[st.bids[win].suit]))win=p;}
+    if(win===null){log('Όλοι πάσο — νέα μοιρασιά.');return setTimeout(()=>startGame('prefa'),900);}
+    st.declarer=win;st.trump=st.bids[win].suit;st.contract=st.bids[win].lvl;
+    log(`Δηλωτής: <b>${win===0?'Εσύ':'AI '+win}</b> — ${st.contract} μπάζες, ατού ${SUITNM[st.trump]} ${st.trump}`);
+    // declarer takes talon then discards 2
+    st.hands[win].push(...st.talon);
+    if(win===0){st.phase='discard';st._disc=[];render();}
+    else{aiDiscard(win);beginPlay();}
+  }
+  function aiDiscard(p){const h=st.hands[p];h.sort((a,b)=>(a.s===st.trump?9:0)+RVAL[a.r]-((b.s===st.trump?9:0)+RVAL[b.r]));const d=[h.shift(),h.shift()];log((p===0?'Εσύ':'AI '+p)+' έκρυψε 2 φύλλα.');}
+  function beginPlay(){st.phase='play';st.leader=st.declarer;st.turn=st.declarer;st.plays=[];st.trickNo=0;render();maybe();}
+  function legalFor(p){const led=st.plays.length?st.plays[0].c.s:null;return legalCards(st.hands[p],led);}
+  function playCard(p,card){
+    if(st.over||st.plays.length>=3||st.turn!==p)return;
+    const led=st.plays.length?st.plays[0].c.s:null;const legal=legalCards(st.hands[p],led);
+    if(!legal.some(c=>c.r===card.r&&c.s===card.s))return;
+    st.hands[p]=st.hands[p].filter(c=>!(c.r===card.r&&c.s===card.s));
+    st.plays.push({p,c:card});
+    if(st.plays.length===3){render();setTimeout(finishTrick,650);}
+    else{st.turn=(p+1)%3;render();setTimeout(maybe,500);}
+  }
+  function finishTrick(){
+    const w=trickWinner(st.plays,st.trump);st.tricks[w]++;st.trickNo++;
+    log(`Μπάζα ${st.trickNo}: <b>${w===0?'Εσύ':'AI '+w}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    st.plays=[];st.leader=w;st.turn=w;
+    if(st.trickNo>=10||st.hands[0].length===0)return endHand();
+    render();maybe();
+  }
+  function maybe(){if(st.over)return;if(st.turn!==0&&st.phase==='play')setTimeout(()=>aiPlay(st.turn),450);}
+  function sameSide(a,b){if(a===b)return true;return a!==st.declarer&&b!==st.declarer;}
+  function aiPlay(p){
+    if(st.phase!=='play'||st.turn!==p)return;
+    const legal=legalFor(p);let choice;
+    if(st.plays.length===0){choice=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];}
+    else{const curW=trickWinner(st.plays,st.trump);const friendWin=sameSide(p,curW)&&curW!==p;
+      const winners=legal.filter(c=>{const t=[...st.plays,{p,c}];return trickWinner(t,st.trump)===p;});
+      if(friendWin){choice=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];}
+      else if(winners.length){choice=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];}
+      else{choice=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];}}
+    if(Math.random()<aiRnd())choice=legal[Math.floor(Math.random()*legal.length)];
+    playCard(p,choice);
+  }
+  function endHand(){
+    st.over=true;const dt=st.tricks[st.declarer];const made=dt>=st.contract;
+    const youWin=(st.declarer===0)?made:!made;
+    log(`Ο δηλωτής έκανε ${dt}/${st.contract} μπάζες — ${made?'ΠΕΤΥΧΕ':'ΕΠΕΣΕ'}.`);
+    render();
+    document.getElementById('prMsg').innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Κέρδισες τον γύρο!':'Έχασες τον γύρο.'}</b> Δηλωτής (${st.declarer===0?'εσύ':'AI '+st.declarer}): ${dt}/${st.contract}`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('prefa')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('prefa',youWin);
+  }
+  window._prBid=(lvl)=>{st.bids[0]=lvl==null?{pass:true}:{lvl,suit:bestBid(st.hands[0]).suit||'♠'};resolveBids();};
+  window._prDiscToggle=(i)=>{const k=st._disc.indexOf(i);if(k>=0)st._disc.splice(k,1);else if(st._disc.length<2)st._disc.push(i);render();};
+  window._prDiscOk=()=>{if(st._disc.length!==2)return;st.hands[0]=st.hands[0].filter((c,i)=>!st._disc.includes(i));log('Έκρυψες 2 φύλλα.');beginPlay();};
+  function render(anim){
+    sortHandBySuit(st.hands[0]);if(anim)fx('deal');
+    let seats='';for(let p=1;p<3;p++){seats+=`<div class="seat ${st.turn===p&&st.phase==='play'?'turn':''}" style="flex:1">
+      <div class="nm"><span>🤖 AI ${p}${p===st.declarer?' 👑':''}</span><span class="won-pile">μπάζες: ${st.tricks[p]}</span></div>
+      <div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;}
+    const trickHtml=st.plays.length?st.plays.map(x=>`<div style="text-align:center"><div class="sub">${x.p===0?'Εσύ':'AI '+x.p}</div>${cardEl(x.c)}</div>`).join(''):'<span class="sub">— μπάζα —</span>';
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:10px;justify-content:center">${seats}</div>
+      ${st.trump?`<div style="text-align:center;margin:8px 0"><span class="chip">Ατού: ${SUITNM[st.trump]} ${st.trump} · Συμβόλαιο ${st.contract} (δηλωτής ${st.declarer===0?'εσύ':'AI '+st.declarer})</span></div>`:''}
+      <div class="trick-area">${trickHtml}</div>
+      <div class="seat ${st.turn===0&&st.phase==='play'?'turn':''}" style="max-width:660px;margin:10px auto 0">
+        <div class="nm"><span>🧑 Εσύ${st.declarer===0?' 👑':''}</span><span class="won-pile">μπάζες: ${st.tricks[0]}</span></div>
+        <div class="hand" id="prHand" style="margin-top:8px">${st.hands[0].map((c,i)=>cardEl(c,'clk'+(st.phase==='discard'&&st._disc&&st._disc.includes(i)?' sel':''))).join('')}</div></div></div>`;
+    if(st.phase==='bid'){
+      const bb=bestBid(st.hands[0]);
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Δήλωσε ατού ${bb.suit?SUITNM[bb.suit]+' '+bb.suit:'—'} ή πάσο:</span>
+        <button class="btn" onclick="_prBid(null)">Πάσο</button>
+        ${[6,7,8].map(l=>`<button class="btn primary" onclick="_prBid(${l})">${l} μπάζες</button>`).join('')}</div>`);
+    } else if(st.phase==='discard'){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Πήρες τον μπάζο (2 φύλλα). Διάλεξε 2 να κρύψεις (${st._disc.length}/2):</span>
+        <button class="btn primary" onclick="_prDiscOk()">ΟΚ</button></div>`);
+      host().querySelectorAll('#prHand .pc').forEach((el,i)=>el.onclick=()=>_prDiscToggle(i));
+    } else if(st.phase==='play'&&st.turn===0){
+      const legal=legalFor(0);
+      host().querySelectorAll('#prHand .pc').forEach((el,i)=>{const c=st.hands[0][i];const ok=legal.some(x=>x.r===c.r&&x.s===c.s);if(ok)el.onclick=()=>playCard(0,c);else el.classList.add('dim');});
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub" id="prMsg">${st.phase==='play'?(st.turn===0?'Η σειρά σου — ρίξε φύλλο (ακολούθησε το χρώμα).':'Παίζει AI '+st.turn+'…'):''}</span></div>
+      <div class="log" id="prLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    fx('');const lg=document.getElementById('prLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Δήλωσε πόσες μπάζες αναλαμβάνεις & το ατού. Μετά παίξε τις 10 μπάζες.');startBidding();
+};
+
+/* ============================================================
+   ΜΠΡΙΤΖ (Mini-Bridge, 4 players, partnerships)
+   ============================================================ */
+GAME_ENGINES.bridge=function(){
+  // seats: 0=Εσύ(Νότος) 1=Δύση 2=Βορράς(παρτενέρ) 3=Ανατολή. NS={0,2} EW={1,3}
+  const SEATNM=['Εσύ (Νότος)','Δύση','Βορράς (παρτενέρ)','Ανατολή'];
+  const SUITNM={'♠':'Πίκα','♥':'Κούπα','♦':'Καρό','♣':'Σπαθί'};
+  const st={over:false,logs:[],phase:'setup',hands:[[],[],[],[]],trump:null,declarer:null,dummy:null,level:0,leader:0,turn:0,plays:[],tricks:[0,0,0,0],trickNo:0,contractStrain:''};
+  let deck=shuffle(makeDeck());
+  for(let p=0;p<4;p++)for(let i=0;i<13;i++)st.hands[p].push(deck.pop());
+  const H=st.hands.map(hcp);
+  function log(m){st.logs.push(m);}
+  function side(p){return p%2===0?'NS':'EW';}
+  function partner(p){return (p+2)%4;}
+  function setup(){
+    const ns=H[0]+H[2],ew=H[1]+H[3];
+    const decSide=ns>=ew?[0,2]:[1,3];const combined=Math.max(ns,ew);
+    st.declarer=H[decSide[0]]>=H[decSide[1]]?decSide[0]:decSide[1];
+    st.dummy=partner(st.declarer);st.combined=combined;
+    log(`HCP — Εσύ:${H[0]} Δ:${H[1]} Β:${H[2]} Α:${H[3]}. Σύνολα NS:${ns} EW:${ew}.`);
+    log(`Εκτελεστής: <b>${SEATNM[st.declarer]}</b> (${combined} HCP μαζί με παρτενέρ).`);
+    if(st.declarer===0){st.phase='choose';render();}
+    else{const c=autoContract(st.declarer,combined);setContract(c.strain,c.level);}
+  }
+  function longestSuit(p){const cnt={};st.hands[p].forEach(c=>cnt[c.s]=(cnt[c.s]||0)+1);let bs='♠',bv=-1;SUITS.forEach(s=>{if((cnt[s]||0)>bv){bv=cnt[s]||0;bs=s;}});return bs;}
+  function autoContract(p,comb){const s=longestSuit(p);let strain=s,level;
+    if(comb>=33)level=6;else if(comb>=25){if(s==='♥'||s==='♠')level=4;else{strain='NT';level=3;} }else level=2;
+    return {strain,level};}
+  function setContract(strain,level){
+    st.trump=strain==='NT'?null:strain;st.contractStrain=strain;st.level=level;
+    log(`Συμβόλαιο: <b>${level}${strain==='NT'?'ΧΑ':' '+SUITNM[strain]+' '+strain}</b> — στόχος ${level+6} λεβέ.`);
+    st.phase='play';st.leader=(st.declarer+1)%4;st.turn=st.leader;st.plays=[];st.dummyShown=false;render();maybe();
+  }
+  window._brContract=(strain)=>{const c=autoContract(st.declarer,st.combined);setContract(strain,c.level);};
+  function controlledBy0(p){ // does the human control seat p's card?
+    if(st.dummy===0)return false;            // you are dummy → AI declarer plays everything
+    if(p===0)return true;
+    if(st.declarer===0&&p===st.dummy)return true; // you are declarer → you also play dummy
+    return false;
+  }
+  function legalFor(p){const led=st.plays.length?st.plays[0].c.s:null;return legalCards(st.hands[p],led);}
+  function playCard(p,card){
+    if(st.over||st.plays.length>=4||st.turn!==p)return;
+    const led=st.plays.length?st.plays[0].c.s:null;const legal=legalCards(st.hands[p],led);
+    if(!legal.some(c=>c.r===card.r&&c.s===card.s))return;
+    st.hands[p]=st.hands[p].filter(c=>!(c.r===card.r&&c.s===card.s));
+    st.plays.push({p,c:card});
+    st.dummyShown=true;
+    if(st.plays.length===4){render();setTimeout(finishTrick,700);}
+    else{st.turn=(p+1)%4;render();setTimeout(maybe,450);}
+  }
+  function finishTrick(){
+    const w=trickWinner(st.plays,st.trump);st.tricks[w]++;st.trickNo++;
+    log(`Λεβέ ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    st.plays=[];st.leader=w;st.turn=w;
+    if(st.trickNo>=13)return endHand();
+    render();maybe();
+  }
+  function maybe(){if(st.over||st.phase!=='play')return;if(!controlledBy0(st.turn))setTimeout(()=>aiPlay(st.turn),450);}
+  function aiPlay(p){
+    if(st.phase!=='play'||st.turn!==p||controlledBy0(p))return;
+    const legal=legalFor(p);let choice;
+    if(st.plays.length===0){choice=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];}
+    else{const curW=trickWinner(st.plays,st.trump);const friendWin=side(curW)===side(p)&&curW!==p;
+      const winners=legal.filter(c=>trickWinner([...st.plays,{p,c}],st.trump)===p);
+      if(friendWin)choice=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];
+      else if(winners.length)choice=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];
+      else choice=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];}
+    if(Math.random()<aiRnd())choice=legal[Math.floor(Math.random()*legal.length)];
+    playCard(p,choice);
+  }
+  function endHand(){
+    st.over=true;const need=st.level+6;const dTricks=st.tricks[st.declarer]+st.tricks[st.dummy];const made=dTricks>=need;
+    const youDeclSide=side(0)===side(st.declarer);const youWin=youDeclSide?made:!made;
+    log(`Εκτελεστική πλευρά: ${dTricks} λεβέ / ${need} — ${made?'ΠΕΤΥΧΕ ✔':'ΕΠΕΣΕ ✘'}`);
+    render();
+    document.getElementById('brMsg').innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Κερδίσατε!':'Χάσατε.'}</b> ${dTricks}/${need} λεβέ (${youDeclSide?'ήσουν στην εκτελεστική πλευρά':'ήσουν στην άμυνα'})`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('bridge')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('bridge',youWin);
+  }
+  function seatMini(p,label,active){
+    const showFace=st.dummyShown&&p===st.dummy;
+    return `<div class="seat ${active?'turn':''}" style="min-width:120px;flex:1">
+      <div class="nm"><span>${p===st.declarer?'👑 ':''}${p===st.dummy?'🃏 ':''}${label}</span><span class="won-pile">${st.tricks[p]}</span></div>
+      <div class="hand tight" id="brSeat${p}" style="margin-top:6px">${st.hands[p].map(c=>showFace?cardEl(c,'mini clk'):cardEl(null,'mini')).join('')}</div></div>`;
+  }
+  function render(anim){
+    sortHandBySuit(st.hands[0]);if(st.dummyShown)sortHandBySuit(st.hands[st.dummy]);if(anim)fx('deal');
+    const top=`<div style="display:flex;gap:8px;justify-content:center">${seatMini(2,'Βορράς',st.turn===2&&st.phase==='play')}</div>`;
+    const mid=`<div style="display:flex;gap:8px;justify-content:space-between;margin:8px 0">${seatMini(1,'Δύση',st.turn===1&&st.phase==='play')}${seatMini(3,'Ανατολή',st.turn===3&&st.phase==='play')}</div>`;
+    const trickHtml=st.plays.length?st.plays.map(x=>`<div style="text-align:center"><div class="sub">${SEATNM[x.p].split(' ')[0]}</div>${cardEl(x.c)}</div>`).join(''):'<span class="sub">— λεβέ —</span>';
+    host().innerHTML=`<div class="felt">
+      ${top}${mid}
+      ${st.trump!==undefined&&st.phase==='play'?`<div style="text-align:center;margin:6px 0"><span class="chip">Συμβόλαιο: ${st.level}${st.contractStrain==='NT'?'ΧΑ':' '+st.contractStrain} · στόχος ${st.level+6} λεβέ</span></div>`:''}
+      <div class="trick-area">${trickHtml}</div>
+      <div class="seat ${st.turn===0&&st.phase==='play'?'turn':''}" style="max-width:680px;margin:6px auto 0">
+        <div class="nm"><span>${st.declarer===0?'👑 ':''}${st.dummy===0?'🃏 ':''}🧑 Εσύ (Νότος) · ${H[0]} HCP</span><span class="won-pile">λεβέ: ${st.tricks[0]}</span></div>
+        <div class="hand" id="brSeat0" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'clk')).join('')}</div></div></div>`;
+    if(st.phase==='choose'){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Είσαι εκτελεστής (${st.combined} HCP μαζί με Βορρά). Διάλεξε ατού:</span>
+        ${SUITS.map(s=>`<button class="btn" onclick="_brContract('${s}')">${SUITNM[s]} ${s}</button>`).join('')}
+        <button class="btn primary" onclick="_brContract('NT')">Άτου (ΧΑ)</button></div>`);
+    } else if(st.phase==='play'){
+      // attach handlers for controllable seats
+      if(controlledBy0(st.turn)){
+        const legal=legalFor(st.turn);
+        host().querySelectorAll('#brSeat'+st.turn+' .pc').forEach((el,i)=>{const c=st.hands[st.turn][i];if(c&&legal.some(x=>x.r===c.r&&x.s===c.s))el.onclick=()=>playCard(st.turn,c);else el.classList.add('dim');});
+      }
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub" id="brMsg">${st.phase==='play'?(controlledBy0(st.turn)?(st.turn===0?'Η σειρά σου — ρίξε φύλλο.':'Παίξε για το ΝΤΑΜΙ (Βορράς).'):'Παίζει '+SEATNM[st.turn]+'…'):''}</span></div>
+      <div class="log" id="brLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    fx('');const lg=document.getElementById('brLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Mini-Bridge: μετρήθηκαν οι HCP. Η δυνατότερη πλευρά παίζει το συμβόλαιο.');setup();
+};
+
+/* ============================================================
+   ΣΚΑΜΠΙΛΙ (plain-trick capture, 4 players individual)
+   ============================================================ */
+GAME_ENGINES.skambili=function(){
+  const R=['7','8','9','10','J','Q','K','A'];
+  const PTS={A:11,'10':10,K:4,Q:3,J:2};
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const st={over:false,logs:[],hands:[[],[],[],[]],plays:[],turn:0,leader:0,trickNo:0,points:[0,0,0,0]};
+  let deck=shuffle(makeDeck(R));
+  for(let p=0;p<4;p++)for(let i=0;i<8;i++)st.hands[p].push(deck.pop());
+  function log(m){st.logs.push(m);}
+  function pv(c){return PTS[c.r]||0;}
+  function legalFor(p){const led=st.plays.length?st.plays[0].c.s:null;return legalCards(st.hands[p],led);}
+  function playCard(p,card){
+    if(st.over||st.plays.length>=4||st.turn!==p)return;
+    const led=st.plays.length?st.plays[0].c.s:null;const legal=legalCards(st.hands[p],led);
+    if(!legal.some(c=>c.r===card.r&&c.s===card.s))return;
+    st.hands[p]=st.hands[p].filter(c=>!(c.r===card.r&&c.s===card.s));
+    st.plays.push({p,c:card});
+    if(st.plays.length===4){render();setTimeout(finishTrick,700);}
+    else{st.turn=(p+1)%4;render();maybe();}
+  }
+  function finishTrick(){
+    const w=trickWinner(st.plays,null);st.trickNo++;
+    const pts=st.plays.reduce((a,x)=>a+pv(x.c),0);st.points[w]+=pts;
+    log(`Μπάζα ${st.trickNo}: <b>${NM[w]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    st.plays=[];st.leader=w;st.turn=w;
+    if(st.trickNo>=8){st.points[w]+=10;log(NM[w]+' +10 (τελευταία μπάζα)');return endGame();}
+    render();maybe();
+  }
+  function maybe(){if(st.over)return;if(st.turn!==0)setTimeout(()=>aiPlay(st.turn),450);}
+  function aiPlay(p){
+    if(st.turn!==p||st.over)return;const legal=legalFor(p);let choice;
+    if(st.plays.length===0){choice=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];}
+    else{const winners=legal.filter(c=>trickWinner([...st.plays,{p,c}],null)===p);
+      const potPts=st.plays.reduce((a,x)=>a+pv(x.c),0);
+      if(winners.length&&potPts>=4)choice=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];
+      else choice=legal.slice().sort((a,b)=>pv(a)-pv(b)||RVAL[a.r]-RVAL[b.r])[0];}
+    if(Math.random()<aiRnd())choice=legal[Math.floor(Math.random()*legal.length)];
+    playCard(p,choice);
+  }
+  function endGame(){
+    st.over=true;const max=Math.max(...st.points);const youWin=st.points[0]===max;
+    render();
+    const msg=document.getElementById('skMsg');
+    if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Κέρδισες!':'Έχασες.'}</b> ${st.points.map((p,i)=>NM[i]+': '+p+'π').join(' · ')}`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('skambili')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('skambili',youWin);
+  }
+  function render(anim){sortHandBySuit(st.hands[0]);if(anim)fx('deal');
+    let seats='';for(let p=1;p<4;p++)seats+=`<div class="seat ${st.turn===p&&!st.over?'turn':''}" style="flex:1"><div class="nm"><span>🤖 ${NM[p]}</span><span class="won-pile">${st.points[p]}π</span></div><div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;
+    const trickHtml=st.plays.length?st.plays.map(x=>`<div style="text-align:center"><div class="sub">${NM[x.p]}</div>${cardEl(x.c)}</div>`).join(''):'<span class="sub">— μπάζα —</span>';
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div class="trick-area">${trickHtml}</div>
+      <div class="seat ${st.turn===0&&!st.over?'turn':''}" style="max-width:680px;margin:8px auto 0">
+        <div class="nm"><span>🧑 Εσύ</span><span class="won-pile">${st.points[0]}π</span></div>
+        <div class="hand" id="skHand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'clk')).join('')}</div></div></div>
+      <div class="controls"><span class="sub" id="skMsg">${st.over?'':(st.turn===0?'Η σειρά σου — ρίξε φύλλο'+(st.plays.length?' (ακολούθησε το χρώμα)':' (εσύ ανοίγεις)'):'Παίζει '+NM[st.turn]+'…')}</span></div>
+      <div class="log" id="skLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    fx('');
+    if(st.turn===0&&!st.over){const legal=legalFor(0);host().querySelectorAll('#skHand .pc').forEach((el,i)=>{const c=st.hands[0][i];if(legal.some(x=>x.r===c.r&&x.s===c.s))el.onclick=()=>playCard(0,c);else el.classList.add('dim');});}
+    const lg=document.getElementById('skLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Το δυνατότερο φύλλο του χρώματος μαζεύει τη μπάζα. Μάζεψε Άσσους & φιγούρες για πόντους!');render(true);
+};
+
+/* ============================================================
+   ΜΠΟΥΡΛΟΤ (Belote, 4 players, partnerships NS vs EW)
+   ============================================================ */
+GAME_ENGINES.bourlot=function(){
+  const R=['7','8','9','10','J','Q','K','A'];
+  const SUITNM={'♠':'Μπαστούνι','♥':'Κούπα','♦':'Καρό','♣':'Σπαθί'};
+  const SEATNM=['Εσύ (Νότος)','Δύση','Βορράς (παρτενέρ)','Ανατολή'];
+  const TORDER={J:8,'9':7,A:6,'10':5,K:4,Q:3,'8':2,'7':1};
+  const PORDER={A:8,'10':7,K:6,Q:5,J:4,'9':3,'8':2,'7':1};
+  const TPTS={J:20,'9':14,A:11,'10':10,K:4,Q:3,'8':0,'7':0};
+  const PPTS={A:11,'10':10,K:4,Q:3,J:2,'9':0,'8':0,'7':0};
+  const st={over:false,logs:[],phase:'trump',hands:[[],[],[],[]],orig:[],plays:[],turn:0,leader:0,trickNo:0,trump:null,bidder:0,bidTeam:0,team:[0,0]};
+  let deck=shuffle(makeDeck(R));
+  for(let p=0;p<4;p++)for(let i=0;i<8;i++)st.hands[p].push(deck.pop());
+  st.orig=st.hands.map(h=>h.slice());
+  function log(m){st.logs.push(m);}
+  function teamOf(p){return p%2;}
+  function bval(c){return c.s===st.trump?100+TORDER[c.r]:PORDER[c.r];}
+  function cardPts(c){return (c.s===st.trump?TPTS[c.r]:PPTS[c.r])||0;}
+  function bWinner(plays){const led=plays[0].c.s;const rk=c=>c.s===st.trump?100+TORDER[c.r]:(c.s===led?PORDER[c.r]:-1);let best=plays[0];for(const pl of plays)if(rk(pl.c)>rk(best.c))best=pl;return best.p;}
+  function suitStrength(hand,s){let v=0,n=0;hand.forEach(c=>{if(c.s===s){v+=TPTS[c.r];n++;}});return v+n*3;}
+  function bestSuitOf(hand){let bs='♠',bv=-1;SUITS.forEach(s=>{const v=suitStrength(hand,s);if(v>bv){bv=v;bs=s;}});return {suit:bs,val:bv};}
+  window._boTrump=(suit)=>{
+    let bidder,trump;
+    if(suit){bidder=0;trump=suit;}
+    else{let best=-1,bs=1,bsuit='♠';for(let p=1;p<4;p++){const r=bestSuitOf(st.hands[p]);if(r.val>best){best=r.val;bs=p;bsuit=r.suit;}}bidder=bs;trump=bsuit;}
+    st.bidder=bidder;st.trump=trump;st.bidTeam=teamOf(bidder);
+    log(`Ατού: <b>${SUITNM[trump]} ${trump}</b> — αγόρασε: <b>${SEATNM[bidder].split(' ')[0]}</b> (${teamOf(bidder)===0?'Ν-Β':'Α-Δ'})`);
+    st.phase='play';st.leader=0;st.turn=0;render();maybe();
+  };
+  function legalFor(p){const led=st.plays.length?st.plays[0].c.s:null;return legalCards(st.hands[p],led);}
+  function playCard(p,card){
+    if(st.over||st.plays.length>=4||st.turn!==p||st.phase!=='play')return;
+    const led=st.plays.length?st.plays[0].c.s:null;const legal=legalCards(st.hands[p],led);
+    if(!legal.some(c=>c.r===card.r&&c.s===card.s))return;
+    st.hands[p]=st.hands[p].filter(c=>!(c.r===card.r&&c.s===card.s));
+    st.plays.push({p,c:card});
+    if(st.plays.length===4){render();setTimeout(finishTrick,750);}
+    else{st.turn=(p+1)%4;render();maybe();}
+  }
+  function finishTrick(){
+    const w=bWinner(st.plays);st.trickNo++;
+    const pts=st.plays.reduce((a,x)=>a+cardPts(x.c),0);st.team[teamOf(w)]+=pts;
+    log(`Μπάζα ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    st.plays=[];st.leader=w;st.turn=w;
+    if(st.trickNo>=8){st.team[teamOf(w)]+=10;log(SEATNM[w].split(' ')[0]+' +10 (τελευταία μπάζα)');return endHand();}
+    render();maybe();
+  }
+  function maybe(){if(st.over||st.phase!=='play')return;if(st.turn!==0)setTimeout(()=>aiPlay(st.turn),450);}
+  function aiPlay(p){
+    if(st.turn!==p||st.over||st.phase!=='play')return;const legal=legalFor(p);let choice;
+    if(st.plays.length===0){choice=legal.slice().sort((a,b)=>bval(b)-bval(a))[0];}
+    else{const curW=bWinner(st.plays);const partnerWin=(teamOf(curW)===teamOf(p))&&curW!==p;
+      const winners=legal.filter(c=>bWinner([...st.plays,{p,c}])===p);
+      if(partnerWin)choice=legal.slice().sort((a,b)=>cardPts(b)-cardPts(a)||bval(a)-bval(b))[0];
+      else if(winners.length)choice=winners.sort((a,b)=>bval(a)-bval(b))[0];
+      else choice=legal.slice().sort((a,b)=>cardPts(a)-cardPts(b)||bval(a)-bval(b))[0];}
+    if(Math.random()<aiRnd())choice=legal[Math.floor(Math.random()*legal.length)];
+    playCard(p,choice);
+  }
+  function endHand(){
+    st.over=true;
+    // belote/rebelote: player holding K & Q of trump → +20 to their team
+    for(let p=0;p<4;p++){const hasK=st.orig[p].some(c=>c.r==='K'&&c.s===st.trump);const hasQ=st.orig[p].some(c=>c.r==='Q'&&c.s===st.trump);if(hasK&&hasQ){st.team[teamOf(p)]+=20;log(SEATNM[p].split(' ')[0]+': Μπελότ–Ρεμπελότ +20');}}
+    const bidPts=st.team[st.bidTeam],opp=1-st.bidTeam,oppPts=st.team[opp];
+    const made=bidPts>=81;const winTeam=made?st.bidTeam:opp;const youWin=winTeam===0;
+    log(`Αγοραστές (${st.bidTeam===0?'Ν-Β':'Α-Δ'}): ${bidPts}π — ${made?'ΜΕΣΑ ✔ (≥81)':'ΕΞΩ ✘ (<81) → όλα στους αντιπάλους'}`);
+    render();
+    const msg=document.getElementById('boMsg');
+    if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Κερδίσατε!':'Χάσατε.'}</b> Ν-Β: ${st.team[0]}π · Α-Δ: ${st.team[1]}π`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('bourlot')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('bourlot',youWin);
+  }
+  function seat(p,label){return `<div class="seat ${st.turn===p&&st.phase==='play'&&!st.over?'turn':''}" style="min-width:120px;flex:1"><div class="nm"><span>${p===st.bidder&&st.trump?'🔥 ':''}${label}</span><span class="won-pile">${st.hands[p].length}φ</span></div><div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;}
+  function render(anim){sortHandBySuit(st.hands[0]);if(anim)fx('deal');
+    const trickHtml=st.plays.length?st.plays.map(x=>`<div style="text-align:center"><div class="sub">${SEATNM[x.p].split(' ')[0]}</div>${cardEl(x.c)}</div>`).join(''):'<span class="sub">— μπάζα —</span>';
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;justify-content:center">${seat(2,'Βορράς')}</div>
+      <div style="display:flex;justify-content:space-between;margin:8px 0">${seat(1,'Δύση')}${seat(3,'Ανατολή')}</div>
+      ${st.trump?`<div style="text-align:center;margin:6px 0"><span class="chip">Ατού: ${SUITNM[st.trump]} ${st.trump} · Εσείς(Ν-Β) ${st.team[0]}π – ${st.team[1]}π Αντίπαλοι(Α-Δ)</span></div>`:''}
+      <div class="trick-area">${trickHtml}</div>
+      <div class="seat ${st.turn===0&&st.phase==='play'&&!st.over?'turn':''}" style="max-width:680px;margin:6px auto 0">
+        <div class="nm"><span>${st.bidder===0&&st.trump?'🔥 ':''}🧑 Εσύ (Νότος)</span><span class="won-pile">${st.hands[0].length}φ</span></div>
+        <div class="hand" id="boHand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'clk')).join('')}</div></div></div>`;
+    if(st.phase==='trump'){
+      const bs=bestSuitOf(st.hands[0]);
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Διάλεξε ατού (καλύτερο: ${SUITNM[bs.suit]} ${bs.suit}) ή πάσο:</span>
+        ${SUITS.map(s=>`<button class="btn" onclick="_boTrump('${s}')">${SUITNM[s]} ${s}</button>`).join('')}
+        <button class="btn ghost" onclick="_boTrump(null)">Πάσο</button></div>`);
+    } else if(st.phase==='play'&&st.turn===0&&!st.over){
+      const legal=legalFor(0);
+      host().querySelectorAll('#boHand .pc').forEach((el,i)=>{const c=st.hands[0][i];if(legal.some(x=>x.r===c.r&&x.s===c.s))el.onclick=()=>playCard(0,c);else el.classList.add('dim');});
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub" id="boMsg">${st.over?'':(st.phase==='play'?(st.turn===0?'Η σειρά σου — ρίξε φύλλο (ακολούθησε το χρώμα).':'Παίζει '+SEATNM[st.turn].split(' ')[0]+'…'):'Επίλεξε ατού.')}</span></div>
+      <div class="log" id="boLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    fx('');const lg=document.getElementById('boLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Belote: J>9>A ατού. Διάλεξε ατού· η ομάδα που αγοράζει θέλει ≥81 πόντους. (απλοποιημένοι κανόνες κοψίματος)');render(true);
+};
+
+/* ============================================================
+   ΑΓΩΝΙΑ (UNO-style shedding, 4 players)
+   ============================================================ */
+GAME_ENGINES.agonia=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const st={over:false,logs:[],hands:[[],[],[],[]],pile:[],curSuit:null,cur:0,dir:1,drawPending:0,phase:'play',_aceP:null};
+  let deck=shuffle(makeDeck());
+  for(let p=0;p<4;p++)for(let i=0;i<7;i++)st.hands[p].push(deck.pop());
+  let start=deck.pop();while(start.r==='A'&&deck.length){deck.unshift(start);start=deck.pop();}
+  st.pile=[start];st.curSuit=start.s;
+  function log(m){st.logs.push(m);}
+  function top(){return st.pile[st.pile.length-1];}
+  function canPlay(c){if(st.drawPending>0)return c.r==='7';return c.r==='A'||c.s===st.curSuit||c.r===top().r;}
+  function reshuf(){if(deck.length<=0){const t=st.pile.pop();deck=shuffle(st.pile.splice(0));st.pile=[t];log('Ανακάτεμα σωρού.');}}
+  function draw(p,n){for(let i=0;i<n;i++){reshuf();if(deck.length)st.hands[p].push(deck.pop());}}
+  function aiChooseSuit(p){const cnt={'♠':0,'♥':0,'♦':0,'♣':0};st.hands[p].forEach(c=>cnt[c.s]++);let bs='♠',bv=-1;SUITS.forEach(s=>{if(cnt[s]>bv){bv=cnt[s];bs=s;}});return bs;}
+  function effectLabel(c){return c.r==='7'?' (+2)':c.r==='8'?' (μπλόκο)':c.r==='J'?' (αλλαγή φοράς)':c.r==='A'?'':'';}
+  function apply(p,c){if(c.r==='7')st.drawPending+=2;else if(c.r==='J')st.dir*=-1;}
+  function finishPlay(p,c){
+    if(st.hands[p].length===0)return endGame(p);
+    moveTurn(c.r==='8'?2:1);
+  }
+  function moveTurn(steps){for(let i=0;i<steps;i++)st.cur=(st.cur+st.dir+4)%4;startTurn();}
+  function startTurn(){
+    if(st.over)return;const p=st.cur;
+    if(st.drawPending>0&&!st.hands[p].some(x=>x.r==='7')){draw(p,st.drawPending);log(NM[p]+' τράβηξε '+st.drawPending+' φύλλα (7άρι).');st.drawPending=0;render();return moveTurn(1);}
+    st.phase='play';render();
+    if(p!==0)setTimeout(aiTurn,700);
+  }
+  function playCard(p,idx){
+    if(st.over||st.cur!==p||st.phase!=='play')return;
+    const c=st.hands[p][idx];if(!canPlay(c))return;
+    st.hands[p].splice(idx,1);st.pile.push(c);apply(p,c);
+    if(c.r==='A'){if(p===0){st._aceP=p;st.phase='choosesuit';render();return;}else{st.curSuit=aiChooseSuit(p);}}
+    else st.curSuit=c.s;
+    log((p===0?'Έπαιξες ':NM[p]+' έπαιξε ')+c.r+c.s+effectLabel(c)+(c.r==='A'?' → '+st.curSuit:''));
+    finishPlay(p,c);
+  }
+  window._agSuit=(s)=>{if(st.phase!=='choosesuit')return;st.curSuit=s;log('Άλλαξες χρώμα σε '+s+'.');st.phase='play';finishPlay(st._aceP,{r:'A'});};
+  window._agDraw=()=>{
+    if(st.over||st.cur!==0||st.phase!=='play')return;
+    if(st.drawPending>0){draw(0,st.drawPending);log('Τράβηξες '+st.drawPending+' φύλλα.');st.drawPending=0;render();return moveTurn(1);}
+    draw(0,1);log('Τράβηξες ένα φύλλο.');render();moveTurn(1);
+  };
+  function aiTurn(){
+    if(st.over||st.cur===0||st.phase!=='play')return;const p=st.cur;
+    let idxs=st.hands[p].map((c,i)=>i).filter(i=>canPlay(st.hands[p][i]));
+    if(idxs.length){
+      const nxt=(p+st.dir+4)%4;const threat=st.hands[nxt].length<=2;
+      const suitCnt={};st.hands[p].forEach(c=>suitCnt[c.s]=(suitCnt[c.s]||0)+1);
+      const score=(c)=>{if(c.r==='A')return threat?5:90;if(c.r==='7'||c.r==='8')return threat?0:30;return 50-(suitCnt[c.s]||0)*2+RVAL[c.r]*0.1;};
+      idxs.sort((a,b)=>score(st.hands[p][a])-score(st.hands[p][b]));
+      let pick=idxs[0];if(Math.random()<aiRnd())pick=idxs[Math.floor(Math.random()*idxs.length)];
+      playCard(p,pick);
+    }
+    else{draw(p,1);log(NM[p]+' τράβηξε.');render();const li=st.hands[p].length-1;if(canPlay(st.hands[p][li]))playCard(p,li);else moveTurn(1);}
+  }
+  function endGame(winner){st.over=true;const youWin=winner===0;render();
+    const msg=document.getElementById('agMsg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Άδειασες πρώτος — Κέρδισες!':NM[winner]+' άδειασε πρώτος. Έχασες.'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('agonia')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('agonia',youWin);
+  }
+  function render(anim){
+    const t=top();if(anim)fx('deal');
+    let seats='';for(let p=1;p<4;p++)seats+=`<div class="seat ${st.cur===p&&!st.over?'turn':''}" style="flex:1"><div class="nm"><span>🤖 ${NM[p]}</span><span class="won-pile">${st.hands[p].length}φ</span></div><div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;
+    const suitCol=SUIT_RED(st.curSuit)?'var(--cardred)':'#111';
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div style="display:flex;gap:20px;justify-content:center;align-items:center;margin:16px 0">
+        <div style="text-align:center"><div class="sub">Σωρός</div>${cardEl(t,'lg')}</div>
+        <div style="text-align:center"><div class="sub">Χρώμα</div><div class="pc lg" style="background:${SUIT_RED(st.curSuit)?'#f7f5ee':'#f7f5ee'};color:${suitCol};display:grid;place-items:center;font-size:34px">${st.curSuit}</div></div>
+        <div style="text-align:center"><div class="sub">Φορά</div><div style="font-size:30px">${st.dir===1?'⟳':'⟲'}</div>${st.drawPending>0?'<div class="chip">ποινή +'+st.drawPending+'</div>':''}</div>
+      </div>
+      <div class="seat ${st.cur===0&&!st.over?'turn':''}" style="max-width:700px;margin:6px auto 0">
+        <div class="nm"><span>🧑 Εσύ</span><span class="won-pile">${st.hands[0].length}φ</span></div>
+        <div class="hand" id="agHand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'clk')).join('')}</div></div></div>`;
+    if(st.phase==='choosesuit'){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Έπαιξες Άσσο — διάλεξε νέο χρώμα:</span>${SUITS.map(s=>`<button class="btn" onclick="_agSuit('${s}')">${s}</button>`).join('')}</div>`);
+    } else {
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><button class="btn" onclick="_agDraw()" ${st.cur!==0||st.over?'disabled':''}>🂠 Τράβα${st.drawPending>0?' '+st.drawPending:''}</button><span class="sub" id="agMsg">${st.over?'':(st.cur===0?'Η σειρά σου — ταίριαξε χρώμα ή αριθμό (ο Άσσος παίζεται πάντα).':'Παίζει '+NM[st.cur]+'…')}</span></div>`);
+      if(st.cur===0&&!st.over){host().querySelectorAll('#agHand .pc').forEach((el,i)=>{if(canPlay(st.hands[0][i]))el.onclick=()=>playCard(0,i);else el.classList.add('dim');});}
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="log" id="agLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    const lg=document.getElementById('agLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Ξεφορτώσου όλα τα φύλλα! 7=+2, 8=μπλόκο, Άσσος=αλλαγή χρώματος, Βαλές=αλλαγή φοράς.');render(true);
+};
+
+/* ============================================================
+   ΜΠΛΟΦΑ (Cheat / Bluff, 4 players)
+   ============================================================ */
+GAME_ENGINES.blofa=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const ORDER=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+  const st={over:false,logs:[],hands:[[],[],[],[]],pile:[],cur:0,rankIdx:0,phase:'play',lastP:null,lastCards:[],_sel:[]};
+  let deck=shuffle(makeDeck());
+  let p=0;while(deck.length){st.hands[p%4].push(deck.pop());p++;}
+  function log(m){st.logs.push(m);}
+  function rankLetter(){return ORDER[st.rankIdx];}
+  function doPlay(p,idxs){
+    const cards=idxs.map(i=>st.hands[p][i]);
+    st.hands[p]=st.hands[p].filter((c,i)=>!idxs.includes(i));
+    st.pile.push(...cards);st.lastP=p;st.lastCards=cards;st._sel=[];
+    log((p===0?'Έπαιξες ':NM[p]+' έπαιξε ')+cards.length+'× «'+rankLetter()+'»'+(p===0?'':' (κλειστά)'));
+    afterPlay(p);
+  }
+  function afterPlay(p){
+    if(p!==0){st.phase='challenge';render();}  // human may challenge an AI play
+    else{const c=aiChallengers(p);resolve(c);}  // AIs may challenge your play
+  }
+  function aiWantsChallenge(c,p){
+    const R=rankLetter();const held=st.hands[c].filter(x=>x.r===R).length;const claimed=st.lastCards.length;
+    if(held+claimed>4)return true;                 // impossible
+    if(st.hands[p].length===0)return true;         // p is going out → must challenge
+    let prob=[0.06,0.10,0.14][AILEVEL]+claimed*0.06+held*0.12;
+    if(claimed>=3)prob+=0.15;                       // big claims look suspicious
+    return Math.random()<prob;
+  }
+  function aiChallengers(p){for(let i=1;i<=3;i++){const c=(p+i)%4;if(c===0)continue;if(aiWantsChallenge(c,p))return c;}return null;}
+  window._blChallenge=()=>{if(st.phase!=='challenge')return;resolve(0);};
+  window._blPass=()=>{if(st.phase!=='challenge')return;resolve(aiChallengers(st.lastP));};
+  function resolve(challenger){
+    const p=st.lastP;const R=rankLetter();
+    const truthful=st.lastCards.every(c=>c.r===R);
+    if(challenger==null){
+      if(st.hands[p].length===0)return endGame(p);
+      return advance();
+    }
+    // reveal
+    log('🚨 '+(challenger===0?'Εσύ':NM[challenger])+' φωνάζει «Μπλόφα!» — φύλλα: '+st.lastCards.map(c=>c.r+c.s).join(' '));
+    if(truthful){
+      st.hands[challenger].push(...st.pile);st.pile=[];
+      log((challenger===0?'Ήταν αλήθεια! Παίρνεις':NM[challenger]+': ήταν αλήθεια, παίρνει')+' τον σωρό.');
+      if(st.hands[p].length===0)return endGame(p);
+    } else {
+      st.hands[p].push(...st.pile);st.pile=[];
+      log((p===0?'Σε τσάκωσαν! Παίρνεις':NM[p]+': μπλόφα! Παίρνει')+' τον σωρό.');
+    }
+    advance();
+  }
+  function advance(){st.lastCards=[];st.cur=(st.lastP+1)%4;st.rankIdx=(st.rankIdx+1)%13;st.phase='play';render();
+    if(st.cur!==0&&!st.over)setTimeout(aiTurn,800);
+  }
+  function aiTurn(){
+    if(st.over||st.cur===0||st.phase!=='play')return;const p=st.cur;const R=rankLetter();
+    const real=st.hands[p].map((c,i)=>i).filter(i=>st.hands[p][i].r===R);
+    let idxs;
+    if(real.length){idxs=real;}                        // play all real (truthful, dump)
+    else{const lo=st.hands[p].map((c,i)=>i).sort((a,b)=>RVAL[st.hands[p][a].r]-RVAL[st.hands[p][b].r]);
+      const nB=AILEVEL>=2?1:(1+(Math.random()<0.3?1:0));idxs=lo.slice(0,nB);}  // hard: minimal bluff
+    doPlay(p,idxs);
+  }
+  window._blToggle=(i)=>{if(st.cur!==0||st.phase!=='play')return;const k=st._sel.indexOf(i);if(k>=0)st._sel.splice(k,1);else if(st._sel.length<4)st._sel.push(i);render();};
+  window._blPlay=()=>{if(st.cur!==0||st.phase!=='play'||!st._sel.length)return;doPlay(0,st._sel.slice().sort((a,b)=>a-b));};
+  function endGame(winner){st.over=true;const youWin=winner===0;render();
+    const msg=document.getElementById('blMsg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Άδειασες πρώτος — Κέρδισες!':NM[winner]+' άδειασε πρώτος. Έχασες.'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('blofa')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
+    recordGame('blofa',youWin);
+  }
+  function render(anim){
+    if(anim)fx('deal');
+    let seats='';for(let pp=1;pp<4;pp++)seats+=`<div class="seat ${st.cur===pp&&st.phase==='play'&&!st.over?'turn':''}" style="flex:1"><div class="nm"><span>🤖 ${NM[pp]}</span><span class="won-pile">${st.hands[pp].length}φ</span></div><div class="hand tight" style="margin-top:6px">${st.hands[pp].map(()=>cardEl(null,'mini')).join('')}</div></div>`;
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div style="text-align:center;margin:14px 0">
+        <div class="chip" style="font-size:15px">Δηλωμένη αξία: <b style="color:var(--gold)">${rankLetter()}</b></div>
+        <div class="sub" style="margin-top:8px">Σωρός: ${st.pile.length} φύλλα (κλειστά)</div>
+        <div class="hand" style="justify-content:center;margin-top:6px">${st.pile.slice(-5).map(()=>cardEl(null,'mini')).join('')||'<span class="sub">—</span>'}</div>
+      </div>
+      <div class="seat ${st.cur===0&&st.phase==='play'&&!st.over?'turn':''}" style="max-width:720px;margin:6px auto 0">
+        <div class="nm"><span>🧑 Εσύ</span><span class="won-pile">${st.hands[0].length}φ</span></div>
+        <div class="hand" id="blHand" style="margin-top:8px">${st.hands[0].map((c,i)=>cardEl(c,'clk'+(st._sel.includes(i)?' sel':''))).join('')}</div></div></div>`;
+    if(st.phase==='play'&&st.cur===0&&!st.over){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">Διάλεξε 1–4 φύλλα (κλικ) και δήλωσέ τα ως «${rankLetter()}» — αλήθεια ή μπλόφα!</span>
+        <button class="btn primary" onclick="_blPlay()" ${st._sel.length?'':'disabled'}>Παίξε ${st._sel.length||''} ως «${rankLetter()}»</button></div>`);
+      host().querySelectorAll('#blHand .pc').forEach((el,i)=>el.onclick=()=>_blToggle(i));
+    } else if(st.phase==='challenge'){
+      host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub">${NM[st.lastP]} δήλωσε ${st.lastCards.length}× «${rankLetter()}». Το πιστεύεις;</span>
+        <button class="btn primary" onclick="_blChallenge()">🚨 Μπλόφα!</button>
+        <button class="btn" onclick="_blPass()">Το αφήνω</button></div>`);
+    }
+    host().insertAdjacentHTML('beforeend',`<div class="controls"><span class="sub" id="blMsg">${st.over?'':(st.phase==='play'&&st.cur!==0?'Παίζει '+NM[st.cur]+'…':'')}</span></div>
+      <div class="log" id="blLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
+    const lg=document.getElementById('blLog');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Παίξε φύλλα κλειστά δηλώνοντας την αξία της σειράς. Λες αλήθεια ή ψέματα — αν σε πιάσουν, παίρνεις τον σωρό!');render(true);
+};
+
+/* ============================================================
+   ΠΑΣΤΡΑ / ΚΟΛΤΣΙΝΑ (capture + sweep)
+   ============================================================ */
+GAME_ENGINES.pastra=function(){
+  const st={over:false,logs:[],deck:shuffle(makeDeck()),table:[],hands:[[],[]],piles:[[],[]],scores:[0,0],pastres:[0,0],turn:0,last:0};
+  for(let i=0;i<4;i++)st.table.push(st.deck.pop());
+  deal();
+  function deal(){for(let p=0;p<2;p++)for(let i=0;i<4;i++)if(st.deck.length)st.hands[p].push(st.deck.pop());}
+  function log(m){st.logs.push(m);}
+  function numV(c){if(c.r==='A')return 1;if(c.r==='J'||c.r==='Q'||c.r==='K')return null;return RVAL[c.r];}
+  function pointVal(c){if(c.r==='A')return 1;if(c.r==='J')return 1;if(c.r==='10'&&c.s==='♦')return 3;if(c.r==='2'&&c.s==='♣')return 2;return 0;}
+  function subsetSum(pool,target){const n=pool.length;for(let m=1;m<(1<<n);m++){let s=0,a=[];for(let i=0;i<n;i++)if(m&(1<<i)){s+=pool[i].nv;a.push(pool[i].i);}if(s===target)return a;}return null;}
+  function capture(card){const idx=[];st.table.forEach((c,i)=>{if(c.r===card.r)idx.push(i);});const v=numV(card);
+    if(v!=null){const pool=[];st.table.forEach((c,i)=>{if(idx.includes(i))return;const nv=numV(c);if(nv!=null)pool.push({i,nv});});const sub=subsetSum(pool,v);if(sub)sub.forEach(i=>idx.push(i));}
+    return idx.length?[...new Set(idx)]:null;}
+  function play(p,handIdx){
+    if(st.over||st.turn!==p)return;const card=st.hands[p].splice(handIdx,1)[0];const who=p===0?'Εσύ':'AI';
+    const cap=capture(card);
+    if(cap){const wasCards=st.table.length;const got=cap.sort((a,b)=>b-a).map(i=>st.table.splice(i,1)[0]);
+      st.piles[p].push(...got,card);st.last=p;let sw=false;
+      if(st.table.length===0&&wasCards>0){st.pastres[p]++;st.scores[p]+=1;sw=true;}
+      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1}${sw?' <b>ΠΑΣΤΡΑ! +1</b>':''}`);
+    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);}
+    if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
+    if(st.hands[0].length===0&&st.hands[1].length===0&&!st.deck.length)return end();
+    st.turn=1-p;render();if(st.turn===1)setTimeout(ai,700);
+  }
+  function ai(){if(st.over)return;const hand=st.hands[1];let best=-1,bs=-1;
+    hand.forEach((c,i)=>{const save=st.table.slice();const cap=capture(c);let sc=-1;if(cap){sc=100+cap.reduce((a,i)=>a+pointVal(st.table[i]),0)*10+cap.length+(cap.length===st.table.length?50:0);}st.table=save;if(sc>bs){bs=sc;best=i;}});
+    if(bs<0){let lo=0,lv=99;hand.forEach((c,i)=>{const v=numV(c)==null?11:numV(c);if(v<lv){lv=v;lo=i;}});best=lo;}
+    if(Math.random()<aiRnd())best=Math.floor(Math.random()*hand.length);
+    play(1,best);}
+  function end(){st.over=true;if(st.table.length){st.piles[st.last].push(...st.table);st.table=[];}
+    for(let p=0;p<2;p++)st.piles[p].forEach(c=>st.scores[p]+=pointVal(c));
+    if(st.piles[0].length>26)st.scores[0]+=3;else if(st.piles[1].length>26)st.scores[1]+=3;
+    const won=st.scores[0]>st.scores[1];render();
+    const msg=document.getElementById('paMsg');if(msg)msg.innerHTML=`<b style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':(st.scores[0]===st.scores[1]?'🤝 Ισοπαλία':'Έχασες.')}</b> ${st.scores[0]}–${st.scores[1]} (φύλλα ${st.piles[0].length}/${st.piles[1].length}, πάστρες ${st.pastres[0]}/${st.pastres[1]})`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('pastra')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('pastra',won);}
+  function render(anim){if(anim)fx('deal');
+    host().innerHTML=`<div class="felt">
+      <div class="seat ${st.turn===1?'turn':''}" style="max-width:320px;margin:0 auto 10px"><div class="nm"><span>🤖 Αντίπαλος</span><span class="stk">Φύλλα: ${st.piles[1].length} · Πάστρες: ${st.pastres[1]}</span></div><div class="hand tight" style="margin-top:6px">${st.hands[1].map(()=>cardEl(null,'mini')).join('')}</div></div>
+      <div style="text-align:center;margin:14px 0"><div class="sub">Τραπέζι${st.deck.length?' · κλειστά: '+st.deck.length:''}</div><div class="hand" style="justify-content:center;margin-top:6px;min-height:70px">${st.table.length?st.table.map(c=>cardEl(c)).join(''):'<span class="sub">(άδειο)</span>'}</div></div>
+      <div class="seat ${st.turn===0?'turn':''}" style="max-width:640px;margin:0 auto"><div class="nm"><span>🧑 Εσύ · μάζεμα με ίδια αξία ή άθροισμα</span><span class="stk">Φύλλα: ${st.piles[0].length} · Πάστρες: ${st.pastres[0]}</span></div><div class="hand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c,'lg clk')).join('')}</div></div></div>
+      <div class="controls"><span class="sub" id="paMsg">${st.turn===0?'Η σειρά σου. Καθάρισε το τραπέζι για ΠΑΣΤΡΑ (+1)!':'Παίζει ο αντίπαλος…'}</span></div>
+      <div class="log" id="paLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    fx('');if(st.turn===0)host().querySelectorAll('.seat:last-of-type .pc').forEach((el,i)=>el.onclick=()=>play(0,i));
+    const lg=document.getElementById('paLog');if(lg)lg.scrollTop=lg.scrollHeight;}
+  window._activeGame=st;log('Μάζεμα: ίδια αξία ή άθροισμα (π.χ. 7 = 5+2). Καθάρισε το τραπέζι → ΠΑΣΤΡΑ +1!');render(true);
+};
+
+/* ============================================================
+   ΣΚΑΤΑ / ΓΑΙΔΑΡΟΣ (four-of-a-kind passing race)
+   ============================================================ */
+GAME_ENGINES.gaidaros=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const st={over:false,logs:[],hands:[[],[],[],[]],round:0};
+  const ranks=shuffle(RANKS.slice()).slice(0,4);
+  let cards=[];ranks.forEach(r=>SUITS.forEach(s=>cards.push({r,s})));shuffle(cards);
+  for(let p=0;p<4;p++)st.hands[p]=cards.splice(0,4);
+  function log(m){st.logs.push(m);}
+  function four(h){return h.length===4&&h.every(c=>c.r===h[0].r);}
+  function aiPass(p){const cnt={};st.hands[p].forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);let tgt=st.hands[p][0].r,mx=0;Object.entries(cnt).forEach(([r,n])=>{if(n>mx){mx=n;tgt=r;}});
+    let cand=st.hands[p].map((c,i)=>i).filter(i=>st.hands[p][i].r!==tgt);if(!cand.length)cand=st.hands[p].map((c,i)=>i);cand.sort((a,b)=>cnt[st.hands[p][a].r]-cnt[st.hands[p][b].r]);return cand[0];}
+  function doRound(myIdx){
+    if(st.over)return;const passed=[];
+    for(let p=0;p<4;p++){const idx=p===0?myIdx:aiPass(p);passed[p]=st.hands[p].splice(idx,1)[0];}
+    for(let p=0;p<4;p++)st.hands[p].push(passed[(p+3)%4]);
+    st.round++;
+    for(let p=0;p<4;p++)if(four(st.hands[p]))return endGame(p);
+    render();
+  }
+  window._gaPass=(i)=>doRound(i);
+  function endGame(winner){st.over=true;const youWin=winner===0;render();
+    const msg=document.getElementById('gaMsg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Καρέ '+st.hands[0][0].r+' — Κέρδισες!':NM[winner]+' έκανε καρέ. Έμεινες «γάιδαρος»! 🐴'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('gaidaros')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('gaidaros',youWin);}
+  function render(){
+    let seats='';for(let p=1;p<4;p++)seats+=`<div class="seat" style="flex:1"><div class="nm"><span>🤖 ${NM[p]}</span></div><div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div style="text-align:center;margin:16px 0"><span class="chip">Γύρος ${st.round}</span></div>
+      <div class="seat turn" style="max-width:560px;margin:0 auto"><div class="nm"><span>🧑 Εσύ — δώσε ένα φύλλο (κλικ)</span></div><div class="hand" id="gaHand" style="margin-top:8px;justify-content:center">${st.hands[0].map(c=>cardEl(c,'lg clk')).join('')}</div></div></div>
+      <div class="controls"><span class="sub" id="gaMsg">${st.over?'':'Κάνε κλικ στο φύλλο που θες να δώσεις αριστερά (και θα πάρεις ένα από δεξιά).'}</span></div>
+      <div class="log" id="gaLog">${st.logs.slice(-20).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    if(!st.over)host().querySelectorAll('#gaHand .pc').forEach((el,i)=>el.onclick=()=>_gaPass(i));}
+  window._activeGame=st;log('Κυνήγα τετράδα ('+ranks.join('/')+'). Δώσε τα άχρηστα, μάζεψε 4 όμοια πρώτος!');render();
+};
+
+/* ============================================================
+   ΜΟΥΤΖΟΥΡΗΣ (Old Maid)
+   ============================================================ */
+GAME_ENGINES.moutzouris=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const st={over:false,logs:[],hands:[[],[],[],[]],turn:0,out:[false,false,false,false]};
+  let cards=makeDeck().filter(c=>!(c.r==='Q'&&c.s==='♠'));shuffle(cards);
+  let k=0;while(cards.length){st.hands[k%4].push(cards.pop());k++;}
+  function log(m){st.logs.push(m);}
+  function discardPairs(p){const byRank={};st.hands[p].forEach(c=>(byRank[c.r]=byRank[c.r]||[]).push(c));let keep=[];Object.values(byRank).forEach(arr=>{while(arr.length>=2){arr.pop();arr.pop();}keep.push(...arr);});st.hands[p]=keep;}
+  for(let p=0;p<4;p++)discardPairs(p);
+  function checkOut(){for(let p=0;p<4;p++)if(!st.out[p]&&st.hands[p].length===0){st.out[p]=true;log(NM[p]+' άδειασε — σώθηκε.');}}
+  checkOut();
+  function activeCount(){return st.out.filter(x=>!x).length;}
+  function nextActive(from){for(let i=1;i<=4;i++){const p=(from+i)%4;if(!st.out[p])return p;}return from;}
+  function drawFrom(p,idx){const src=nextActive(p);if(src===p)return;const card=st.hands[src].splice(idx,1)[0];st.hands[p].push(card);log(NM[p]+' τράβηξε από '+NM[src]+'.');discardPairs(p);checkOut();
+    if(activeCount()<=1)return endGame();
+    st.turn=nextActive(p);render();if(st.turn!==0)setTimeout(aiTurn,750);}
+  window._moDraw=(idx)=>{if(st.over||st.turn!==0)return;drawFrom(0,idx);};
+  function aiTurn(){if(st.over||st.turn===0)return;const src=nextActive(st.turn);const idx=Math.floor(Math.random()*st.hands[src].length);drawFrom(st.turn,idx);}
+  function endGame(){st.over=true;const loser=st.out.indexOf(false);const youWin=loser!==0;render();
+    const msg=document.getElementById('moMsg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Δεν έμεινες μουτζούρης — Κέρδισες!':'Έμεινες με τον μουτζούρη! Έχασες. 😅'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('moutzouris')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('moutzouris',youWin);}
+  function render(){const src=nextActive(0);
+    let seats='';for(let p=1;p<4;p++)seats+=`<div class="seat ${st.out[p]?'folded':''} ${st.turn===p?'turn':''}" style="flex:1"><div class="nm"><span>🤖 ${NM[p]}${st.out[p]?' ✓':''}</span><span class="won-pile">${st.hands[p].length}φ</span></div><div class="hand tight" style="margin-top:6px">${st.hands[p].map(()=>cardEl(null,'mini')).join('')}</div></div>`;
+    sortHandBySuit(st.hands[0]);
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div style="text-align:center;margin:14px 0">
+        ${st.turn===0&&!st.over?`<div class="sub">Τράβα ένα κρυφό φύλλο από τον <b>${NM[src]}</b>:</div><div class="hand" id="moSrc" style="justify-content:center;margin-top:6px">${st.hands[src].map(()=>cardEl(null,'lg clk')).join('')}</div>`:`<span class="sub">${st.over?'':'Παίζει '+NM[st.turn]+'…'}</span>`}
+      </div>
+      <div class="seat ${st.turn===0?'turn':''} ${st.out[0]?'folded':''}" style="max-width:680px;margin:0 auto"><div class="nm"><span>🧑 Εσύ${st.out[0]?' ✓ (σώθηκες)':''}</span><span class="won-pile">${st.hands[0].length}φ</span></div><div class="hand" style="margin-top:8px">${st.hands[0].map(c=>cardEl(c)).join('')||'<span class="sub">(άδειο)</span>'}</div></div></div>
+      <div class="controls"><span class="sub" id="moMsg">${st.over?'':(st.turn===0?'Η σειρά σου.':'')}</span></div>
+      <div class="log" id="moLog">${st.logs.slice(-24).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    if(st.turn===0&&!st.over)host().querySelectorAll('#moSrc .pc').forEach((el,i)=>el.onclick=()=>_moDraw(i));
+    const lg=document.getElementById('moLog');if(lg)lg.scrollTop=lg.scrollHeight;}
+  window._activeGame=st;log('Πέτα ζευγάρια. Τράβα κρυφά φύλλα — μη μείνεις με το μονό (τον μουτζούρη)!');
+  if(st.turn!==0&&!st.out[0])setTimeout(aiTurn,700);render();
+};
+
+/* ============================================================
+   ΧΑΛΙ ΓΚΑΛΙ (Halli Galli — real-time bell reaction)
+   ============================================================ */
+GAME_ENGINES.haligali=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const FR=['🍓','🍌','🍋','🥝'];
+  const st={over:false,logs:[],down:[[],[],[],[]],up:[[],[],[],[]],out:[false,false,false,false],cur:0,canRing:false,resolved:false,flips:0,token:0,_t:null};
+  let deck=[];FR.forEach(f=>[1,1,1,2,2,2,3,3,3,4,4,5,5,5].forEach(n=>deck.push({f,n})));shuffle(deck);
+  let k=0;while(deck.length){st.down[k%4].push(deck.pop());k++;}
+  const MAXFLIPS=90;
+  function flipMs(){return Math.max(420,Math.round(1150/HG_SPEED));}
+  function log(m){st.logs.push(m);}
+  function totals(){const t={};for(let p=0;p<4;p++){const a=st.up[p];if(a.length){const c=a[a.length-1];t[c.f]=(t[c.f]||0)+c.n;}}return t;}
+  function cond(){return Object.values(totals()).some(v=>v===5);}
+  function alive(p){return st.down[p].length+st.up[p].length>0;}
+  function activeCount(){let n=0;for(let p=0;p<4;p++)if(alive(p))n++;return n;}
+  function nextDown(from){for(let i=1;i<=4;i++){const p=(from+i)%4;if(st.down[p].length>0)return p;}return -1;}
+  function flip(){
+    if(st.over)return;let p=st.cur;if(st.down[p].length===0)p=nextDown(p===0?3:p-1);
+    if(p<0||st.down[p].length===0){p=nextDown(st.cur);}if(p<0)return end();
+    const c=st.down[p].pop();st.up[p].push(c);st.flips++;st.cur=(p+1)%4;render();
+    if(cond())startWindow();else if(st.flips>=MAXFLIPS)end();else st._t=setTimeout(flip,flipMs());
+  }
+  function startWindow(){st.canRing=true;st.resolved=false;const tok=++st.token;render();
+    const miss=[0.30,0.15,0.05][AILEVEL],base=[820,560,380][AILEVEL];
+    for(let p=1;p<4;p++){if(!alive(p)||Math.random()<miss)continue;setTimeout(()=>{if(st.over||st.resolved||st.token!==tok)return;attemptRing(p);},base*(0.7+Math.random()*0.8));}}
+  window._hgRing=()=>attemptRing(0);
+  window._hgSpeed=(v)=>{HG_SPEED=v;THEME.hgSpeed=v;saveTheme();render();};
+  function attemptRing(p){
+    if(st.over||st.resolved)return;st.resolved=true;st.token++;if(st._t)clearTimeout(st._t);
+    const valid=cond();
+    if(valid){let all=[];for(let q=0;q<4;q++){all.push(...st.up[q]);st.up[q]=[];}shuffle(all);st.down[p].unshift(...all);log('🔔 '+NM[p]+' χτύπησε ΣΩΣΤΑ — μάζεψε '+all.length+' κάρτες!');}
+    else{log('🔔 '+NM[p]+' χτύπησε ΛΑΘΟΣ — δίνει από μία κάρτα!');for(let q=0;q<4;q++)if(q!==p&&alive(q)&&st.down[p].length>0)st.down[q].unshift(st.down[p].pop());}
+    st.canRing=false;checkOuts();if(activeCount()<=1)return end();render();st._t=setTimeout(flip,750);
+  }
+  function checkOuts(){for(let p=0;p<4;p++)if(!st.out[p]&&!alive(p)){st.out[p]=true;log(NM[p]+' έμεινε χωρίς κάρτες.');}}
+  function end(){if(st.over)return;st.over=true;if(st._t)clearTimeout(st._t);
+    let best=-1,bp=0;for(let p=0;p<4;p++){const n=st.down[p].length+st.up[p].length;if(n>best){best=n;bp=p;}}
+    const youWin=bp===0;render();
+    const msg=document.getElementById('hgMsg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Μάζεψες τις περισσότερες κάρτες — Κέρδισες!':NM[bp]+' κέρδισε (περισσότερες κάρτες).'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('haligali')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('haligali',youWin);}
+  function frCard(c){return `<div class="pc lg" style="background:#f7f5ee;color:#111;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:15px;font-weight:800">${c.n}×</div><div style="font-size:26px">${c.f}</div></div>`;}
+  function render(){
+    let row='';for(let p=0;p<4;p++){const a=st.up[p];const t=a[a.length-1];
+      row+=`<div class="seat ${st.cur===p&&!st.canRing&&!st.over?'turn':''} ${st.out[p]?'folded':''}" style="flex:1;text-align:center"><div class="nm" style="justify-content:center"><span>${p===0?'🧑 Εσύ':'🤖 '+NM[p]}</span></div><div style="margin:6px 0;display:flex;justify-content:center">${t?frCard(t):'<div class="pc lg dim"></div>'}</div><div class="sub">κάτω: ${st.down[p].length}</div></div>`;}
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${row}</div>
+      <div style="text-align:center;margin:18px 0">
+        <button class="btn ${st.canRing?'gold':''}" onclick="_hgRing()" style="font-size:22px;padding:14px 32px">🔔 ΚΑΜΠΑΝΑ!</button>
+        <div class="sub" style="margin-top:8px" id="hgMsg">${st.over?'':'Χτύπα μόλις δεις ΑΚΡΙΒΩΣ 5 ίδια φρούτα!'}</div>
+        <div class="pill-row" style="justify-content:center;margin-top:8px">${[[0.65,'🐢 Αργό'],[1,'▶ Κανονικό'],[1.6,'⚡ Γρήγορο']].map(([v,nm])=>`<button class="btn sm ${(''+HG_SPEED)===(''+v)?'primary':'ghost'}" onclick="_hgSpeed(${v})">${nm}</button>`).join('')}</div>
+      </div>
+      <div class="log" id="hgLog">${st.logs.slice(-18).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    const lg=document.getElementById('hgLog');if(lg)lg.scrollTop=lg.scrollHeight;}
+  st.cleanup=()=>{st.over=true;if(st._t)clearTimeout(st._t);};
+  window._activeGame=st;log('Καλή τύχη! Χτύπα το καμπανάκι μόλις 5 ίδια φρούτα εμφανιστούν στις ανοιχτές κάρτες.');
+  render();st._t=setTimeout(flip,1500);
+};
+
+/* ============================================================
+   PHASE 10
+   ============================================================ */
+GAME_ENGINES.phase10=function(){
+  const NM=['Εσύ','AI 1','AI 2','AI 3'];
+  const COLORS=['R','B','Y','G'];
+  const PHASES=[
+    {d:'2 σετ των 3',req:[{t:'set',size:3},{t:'set',size:3}]},
+    {d:'1 σετ των 3 + 1 κέντα των 4',req:[{t:'set',size:3},{t:'run',size:4}]},
+    {d:'1 σετ των 4 + 1 κέντα των 4',req:[{t:'set',size:4},{t:'run',size:4}]},
+    {d:'1 κέντα των 7',req:[{t:'run',size:7}]},
+    {d:'1 κέντα των 8',req:[{t:'run',size:8}]},
+    {d:'1 κέντα των 9',req:[{t:'run',size:9}]},
+    {d:'2 σετ των 4',req:[{t:'set',size:4},{t:'set',size:4}]},
+    {d:'7 ίδιου χρώματος',req:[{t:'color',size:7}]},
+    {d:'1 σετ των 5 + 1 σετ των 2',req:[{t:'set',size:5},{t:'set',size:2}]},
+    {d:'1 σετ των 5 + 1 σετ των 3',req:[{t:'set',size:5},{t:'set',size:3}]}
+  ];
+  const st={over:false,logs:[],hands:[[],[],[],[]],phase:[1,1,1,1],turn:0,drawn:false,discard:[]};
+  let deck=[];COLORS.forEach(col=>{for(let n=1;n<=12;n++){deck.push({n,color:col});deck.push({n,color:col});}});for(let i=0;i<8;i++)deck.push({wild:true});for(let i=0;i<4;i++)deck.push({skip:true});shuffle(deck);
+  for(let p=0;p<4;p++)for(let i=0;i<10;i++)st.hands[p].push(deck.pop());
+  st.discard=[deck.pop()];
+  function log(m){st.logs.push(m);}
+  function reshuf(){if(!deck.length&&st.discard.length>1){const t=st.discard.pop();deck=shuffle(st.discard.splice(0));st.discard=[t];log('Ανακάτεμα στοίβας.');}}
+  function sortH(h){h.sort((a,b)=>{const av=a.wild?100:a.skip?101:a.n+({R:0,B:0.1,Y:0.2,G:0.3}[a.color]);const bv=b.wild?100:b.skip?101:b.n+({R:0,B:0.1,Y:0.2,G:0.3}[b.color]);return av-bv;});}
+  function canPhase(cards,ph){
+    const spec=PHASES[ph-1];
+    if(spec.req[0].t==='color'){const W=cards.filter(c=>c.wild).length;const col={};cards.forEach(c=>{if(!c.wild&&!c.skip)col[c.color]=(col[c.color]||0)+1;});return W>=7||Object.values(col).some(n=>n+W>=7);}
+    const nums={};let W=0;cards.forEach(c=>{if(c.wild)W++;else if(!c.skip)nums[c.n]=(nums[c.n]||0)+1;});
+    return solve(spec.req,0,nums,W);
+    function solve(req,idx,nums,W){
+      if(idx>=req.length)return true;const sp=req[idx];
+      if(sp.t==='set'){
+        for(let n=1;n<=12;n++){const have=nums[n]||0;if(have===0)continue;const useR=Math.min(have,sp.size);const needW=sp.size-useR;if(needW>W)continue;const nn=Object.assign({},nums);nn[n]=have-useR;if(solve(req,idx+1,nn,W-needW))return true;}
+        if(W>=sp.size&&solve(req,idx+1,nums,W-sp.size))return true;return false;
+      } else {
+        for(let s=1;s+sp.size-1<=12;s++){let needW=0;const nn=Object.assign({},nums);for(let kk=0;kk<sp.size;kk++){const n=s+kk;if((nn[n]||0)>0)nn[n]--;else needW++;}if(needW>W)continue;if(solve(req,idx+1,nn,W-needW))return true;}
+        return false;
+      }
+    }
+  }
+  function freshHand(p){reshuf();st.discard.push(...st.hands[p]);st.hands[p]=[];for(let i=0;i<10;i++){reshuf();if(deck.length)st.hands[p].push(deck.pop());}}
+  function advance(p){st.phase[p]++;log('🎉 '+NM[p]+' ολοκλήρωσε τη Φάση '+(st.phase[p]-1)+'!');if(st.phase[p]>10)return endGame(p);freshHand(p);st.drawn=false;st.turn=(p+1)%4;render();if(st.turn!==0&&!st.over)setTimeout(aiTurn,700);}
+  window._p10Stock=()=>{if(st.turn!==0||st.drawn||st.over)return;reshuf();if(deck.length)st.hands[0].push(deck.pop());st.drawn=true;render();};
+  window._p10Disc=()=>{if(st.turn!==0||st.drawn||st.over||!st.discard.length)return;st.hands[0].push(st.discard.pop());st.drawn=true;render();};
+  window._p10Complete=()=>{if(st.turn!==0||!st.drawn||st.over)return;if(canPhase(st.hands[0],st.phase[0]))advance(0);};
+  window._p10Discard=(i)=>{if(st.turn!==0||!st.drawn||st.over)return;const c=st.hands[0].splice(i,1)[0];st.discard.push(c);st.drawn=false;st.turn=1;render();setTimeout(aiTurn,700);};
+  function useful(c,hand,ph){
+    if(c.wild)return 6;if(c.skip)return -6;const spec=PHASES[ph-1].req;
+    const hasSet=spec.some(s=>s.t==='set'),hasRun=spec.some(s=>s.t==='run'),hasCol=spec.some(s=>s.t==='color');let u=0;
+    if(hasCol)u=Math.max(u,hand.filter(x=>!x.wild&&!x.skip&&x.color===c.color).length);
+    if(hasSet)u=Math.max(u,hand.filter(x=>!x.wild&&!x.skip&&x.n===c.n).length*1.5);
+    if(hasRun)u=Math.max(u,1+hand.filter(x=>!x.wild&&!x.skip&&Math.abs(x.n-c.n)===1).length);
+    return u;
+  }
+  function improves(cards,ph){const c=cards[cards.length-1];return useful(c,cards,ph)>=2;}
+  function worst(p){const h=st.hands[p],ph=st.phase[p];let bi=0,bv=1e9;h.forEach((c,i)=>{const u=useful(c,h,ph)*10-(c.n?c.n:0)*0.1+(c.wild?999:0)+(c.skip?-999:0);if(u<bv){bv=u;bi=i;}});return bi;}
+  function aiTurn(){
+    if(st.over||st.turn===0)return;const p=st.turn;reshuf();let took=false;
+    if(st.discard.length&&improves([...st.hands[p],st.discard[st.discard.length-1]],st.phase[p])){st.hands[p].push(st.discard.pop());took=true;}
+    if(!took){reshuf();if(deck.length)st.hands[p].push(deck.pop());}
+    if(canPhase(st.hands[p],st.phase[p]))return advance(p);
+    const di=worst(p);const c=st.hands[p].splice(di,1)[0];st.discard.push(c);st.turn=(p+1)%4;render();if(st.turn!==0&&!st.over)setTimeout(aiTurn,650);
+  }
+  function endGame(winner){st.over=true;const youWin=winner===0;render();
+    const msg=document.getElementById('p10Msg');if(msg)msg.innerHTML=`<b style="color:${youWin?'var(--gold)':'var(--red2)'}">${youWin?'🏆 Ολοκλήρωσες και τις 10 Φάσεις — Κέρδισες!':NM[winner]+' ολοκλήρωσε τις 10 Φάσεις. Έχασες.'}</b>`;
+    host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><button class="btn primary" onclick="startGame('phase10')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('phase10',youWin);}
+  function p10El(c,cls){if(c.wild)return `<div class="pc ${cls||''}" style="background:linear-gradient(135deg,#ececec,#fff);color:#7a1216"><div class="r">W</div><div class="mid">★</div><div class="s">W</div></div>`;
+    if(c.skip)return `<div class="pc ${cls||''}" style="background:#2a2f3a;color:#fff;border-color:#3a4150"><div class="r">S</div><div class="mid">⊘</div><div class="s">S</div></div>`;
+    const col={R:'#c8202a',B:'#2a6fd6',Y:'#c99a1a',G:'#2a9d4a'}[c.color];
+    return `<div class="pc ${cls||''}" style="background:${col};color:#fff;border-color:${col}"><div class="r">${c.n}</div><div class="mid">${c.n}</div><div class="s">${c.n}</div></div>`;}
+  function render(){
+    sortH(st.hands[0]);
+    let seats='';for(let p=1;p<4;p++)seats+=`<div class="seat ${st.turn===p?'turn':''}" style="flex:1"><div class="nm"><span>🤖 ${NM[p]}</span><span class="won-pile">Φάση ${Math.min(st.phase[p],10)}</span></div><div class="sub" style="margin-top:4px">${st.hands[p].length} φύλλα</div></div>`;
+    const canC=st.turn===0&&st.drawn&&canPhase(st.hands[0],st.phase[0]);
+    host().innerHTML=`<div class="felt">
+      <div style="display:flex;gap:8px;justify-content:center">${seats}</div>
+      <div style="display:flex;gap:22px;justify-content:center;align-items:center;margin:14px 0">
+        <div style="text-align:center"><div class="sub">Στοίβα (${deck.length})</div><div onclick="_p10Stock()">${cardEl(null,'lg'+(st.turn===0&&!st.drawn?' clk':''))}</div></div>
+        <div style="text-align:center"><div class="sub">Καμένα</div><div onclick="_p10Disc()">${st.discard.length?p10El(st.discard[st.discard.length-1],'lg'+(st.turn===0&&!st.drawn?' clk':'')):'<div class="pc lg dim"></div>'}</div></div>
+      </div>
+      <div class="seat ${st.turn===0?'turn':''}" style="max-width:780px;margin:0 auto"><div class="nm"><span>🧑 Εσύ · <b style="color:var(--gold)">Φάση ${Math.min(st.phase[0],10)}</b>: ${PHASES[Math.min(st.phase[0],10)-1].d}</span></div><div class="hand" id="p10Hand" style="margin-top:8px">${st.hands[0].map(c=>p10El(c,'clk')).join('')}</div></div></div>
+      <div class="controls">${canC?'<button class="btn gold" onclick="_p10Complete()">🎉 Ολοκλήρωσε Φάση!</button>':''}<span class="sub" id="p10Msg">${st.over?'':(st.turn===0?(st.drawn?('Πέτα ένα φύλλο (κλικ)'+(canC?' ή ολοκλήρωσε τη φάση.':'.')):'Τράβα από στοίβα ή καμένα.'):'Παίζει '+NM[st.turn]+'…')}</span></div>
+      <div class="log" id="p10Log">${st.logs.slice(-28).map(x=>'<div>'+x+'</div>').join('')}</div>`;
+    if(st.turn===0&&st.drawn)host().querySelectorAll('#p10Hand .pc').forEach((el,i)=>el.onclick=()=>_p10Discard(i));
+    const lg=document.getElementById('p10Log');if(lg)lg.scrollTop=lg.scrollHeight;
+  }
+  window._activeGame=st;log('Φάση 1: 2 σετ των 3. Τράβα & πέτα ώστε το χέρι σου να καλύπτει τη φάση, μετά «Ολοκλήρωσε».');render();
+};
+
+/* ============================================================
+   SETTINGS / THEMES
+   ============================================================ */
+const THEME_KEY='trapoula360_theme';
+const BACKS=[['','Κόκκινο'],['back-blue','Μπλε'],['back-green','Πράσινο'],['back-gold','Χρυσό'],['back-purple','Μωβ'],['back-plaid','Καρό']];
+const FELTS=[['','Μπορντό'],['felt-blue','Μπλε νύχτα'],['felt-green','Πράσινο'],['felt-charcoal','Ανθρακί'],['felt-purple','Μωβ']];
+const ACCENTS=[['','Κόκκινο'],['accent-gold','Χρυσό'],['accent-cyan','Κυανό'],['accent-purple','Μωβ']];
+let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1};
+function loadTheme(){try{THEME=Object.assign(THEME,JSON.parse(localStorage.getItem(THEME_KEY)||'{}'));}catch(e){}applyTheme();}
+function applyTheme(){
+  document.body.className='';
+  if(THEME.back)document.body.classList.add(THEME.back);
+  if(THEME.felt)document.body.classList.add(THEME.felt);
+  if(THEME.accent)document.body.classList.add(THEME.accent);
+  AILEVEL=(THEME.ai==null?2:THEME.ai);
+  HG_SPEED=(THEME.hgSpeed==null?1:THEME.hgSpeed);
+}
+function setPref(key,val){THEME[key]=val;saveTheme();openSettings(true);}
+function saveTheme(){try{localStorage.setItem(THEME_KEY,JSON.stringify(THEME));}catch(e){}applyTheme();}
+function setTheme(kind,val){THEME[kind]=val;saveTheme();openSettings(true);}
+function openSettings(keep){
+  let m=document.getElementById('settingsModal');
+  if(!m){m=document.createElement('div');m.id='settingsModal';m.className='modal-bg';m.onclick=(e)=>{if(e.target===m)closeSettings();};document.body.appendChild(m);}
+  const swatchRow=(kind,arr,demo)=>`<div class="opt-grid">${arr.map(([v,nm])=>`<div style="text-align:center">
+      <div class="swatch ${THEME[kind]===v?'on':''}" onclick="setTheme('${kind}','${v}')" style="${demo(v)}"></div>
+      <div class="sub" style="font-size:11px">${nm}</div></div>`).join('')}</div>`;
+  m.innerHTML=`<div class="modal" onclick="event.stopPropagation()">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">⚙️ Ρυθμίσεις &amp; Θέματα</h3><button class="btn ghost sm" onclick="closeSettings()">✕</button></div>
+    <h4 style="color:var(--gold)">🂠 Πλάτη τράπουλας</h4>
+    ${swatchRow('back',BACKS,v=>{const cls=v||'x';return `background:${backDemo(v)}`;})}
+    <h4 style="color:var(--gold)">🟫 Χρώμα τραπεζιού (τσόχα)</h4>
+    ${swatchRow('felt',FELTS,v=>`background:${feltDemo(v)}`)}
+    <h4 style="color:var(--gold)">🎨 Χρώμα τόνου (accent)</h4>
+    ${swatchRow('accent',ACCENTS,v=>`background:${accentDemo(v)}`)}
+    <div class="divider"></div>
+    <h4 style="color:var(--gold)">🧠 Δυσκολία AI</h4>
+    <div class="pill-row">${[[0,'Εύκολο'],[1,'Κανονικό'],[2,'Δύσκολο']].map(([v,nm])=>`<button class="btn sm ${(''+THEME.ai)===(''+v)?'primary':'ghost'}" onclick="setPref('ai',${v})">${nm}</button>`).join('')}</div>
+    <p class="sub" style="margin-top:4px">Ισχύει για όλα τα παιχνίδια. «Δύσκολο» = ο αντίπαλος παίζει σχεδόν βέλτιστα.</p>
+    <h4 style="color:var(--gold)">⏱️ Ταχύτητα Χάλι Γκάλι</h4>
+    <div class="pill-row">${[[0.65,'Αργό'],[1,'Κανονικό'],[1.6,'Γρήγορο']].map(([v,nm])=>`<button class="btn sm ${(''+THEME.hgSpeed)===(''+v)?'primary':'ghost'}" onclick="setPref('hgSpeed',${v})">${nm}</button>`).join('')}</div>
+    <div class="divider"></div>
+    <div id="installRow"></div>
+    <p class="sub" style="margin-top:10px">💡 Η εφαρμογή αποθηκεύει την πρόοδό σου τοπικά στη συσκευή σου.</p>
+  </div>`;
+  refreshInstallRow();
+}
+function backDemo(v){return ({'':'repeating-linear-gradient(45deg,#7a1216,#7a1216 4px,#5c0d10 4px,#5c0d10 8px)','back-blue':'repeating-linear-gradient(45deg,#123a7a,#123a7a 4px,#0d2a5c 4px,#0d2a5c 8px)','back-green':'repeating-linear-gradient(45deg,#0f5132,#0f5132 4px,#0b3d26 4px,#0b3d26 8px)','back-gold':'repeating-linear-gradient(45deg,#8a6d12,#8a6d12 4px,#6b5410 4px,#6b5410 8px)','back-purple':'repeating-linear-gradient(45deg,#4a1d6e,#4a1d6e 4px,#361452 4px,#361452 8px)','back-plaid':'repeating-linear-gradient(90deg,#7a1216 0 3px,#5c0d10 3px 6px)'})[v];}
+function feltDemo(v){return ({'':'#3a1519','felt-blue':'#123055','felt-green':'#124a2e','felt-charcoal':'#22262f','felt-purple':'#37194f'})[v];}
+function accentDemo(v){return ({'':'#e2242b','accent-gold':'#e0a21a','accent-cyan':'#159cc0','accent-purple':'#8b3fd6'})[v];}
+function closeSettings(){const m=document.getElementById('settingsModal');if(m)m.remove();}
+
+/* ============================================================
+   PWA (install + service worker)
+   ============================================================ */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;refreshInstallRow();});
+function refreshInstallRow(){const row=document.getElementById('installRow');if(!row)return;
+  if(deferredPrompt){row.innerHTML=`<button class="btn gold" onclick="doInstall()" style="width:100%">📲 Εγκατάσταση εφαρμογής στη συσκευή</button>`;}
+  else{row.innerHTML=`<p class="sub">📲 Για εγκατάσταση: άνοιξε την εφαρμογή μέσω web server (όχι ως αρχείο) και χρησιμοποίησε «Προσθήκη στην αρχική οθόνη» από τον browser.</p>`;}
+}
+function doInstall(){if(!deferredPrompt)return;deferredPrompt.prompt();deferredPrompt.userChoice.finally(()=>{deferredPrompt=null;refreshInstallRow();});}
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
+
+/* ---------- INIT ---------- */
+loadTheme();refreshHeader();checkAch();go('home');
+</script>
+</body>
+</html>
