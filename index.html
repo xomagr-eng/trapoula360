@@ -95,10 +95,12 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
 /* Playing cards */
 .pc{
   --w:64px;position:relative;width:var(--w);height:calc(var(--w)*1.45);
-  background:var(--card);color:var(--cardink);border-radius:8px;
-  border:1px solid #cfc9b6;box-shadow:0 3px 8px rgba(0,0,0,.4);
+  background:linear-gradient(158deg,#fffef8 0%,#f4f1e4 58%,#e8e4d2 100%);color:var(--cardink);border-radius:9px;
+  border:1px solid #cfc9b6;
+  box-shadow:0 7px 12px rgba(0,0,0,.45), 0 2px 4px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -3px 5px rgba(0,0,0,.07);
   display:flex;flex-direction:column;justify-content:space-between;padding:5px 6px;
-  font-weight:800;user-select:none;flex:0 0 auto}
+  font-weight:800;user-select:none;flex:0 0 auto;
+  transition:transform .16s cubic-bezier(.2,.8,.3,1), box-shadow .16s}
 .pc.red{color:var(--cardred)}
 .pc .r{font-size:calc(var(--w)*.32);line-height:1}
 .pc .s{font-size:calc(var(--w)*.30);text-align:right}
@@ -111,7 +113,7 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
 .pc.mini{--w:40px}
 .pc.lg{--w:82px}
 .pc.clk{cursor:pointer;transition:transform .12s}
-.pc.clk:hover{transform:translateY(-6px)}
+.pc.clk:hover{transform:perspective(520px) translateY(-9px) rotateX(9deg) scale(1.04);box-shadow:0 18px 26px rgba(0,0,0,.5), 0 5px 9px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.9);z-index:5}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
