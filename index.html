@@ -225,6 +225,10 @@ details.example .exbody{padding-bottom:16px;line-height:1.75;font-size:14.5px}
 details.example .exbody b{color:var(--txt)}
 details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);border-top:1px dashed var(--line2);padding-top:10px}
 .rs{color:var(--cardred);font-weight:700}
+.gbar{height:7px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:6px 0 10px}
+.gbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:999px}
+.gcard-play{position:absolute;top:10px;left:10px;background:var(--redlow);border:1px solid var(--red);color:#ffb3b6;border-radius:999px;font-size:11px;padding:3px 9px;cursor:pointer;z-index:2}
+.gcard-play:hover{background:var(--red);color:#fff}
 </style>
 </head>
 <body>
@@ -286,7 +290,7 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
   <section id="view-lesson" class="hidden">
     <button class="btn ghost sm" onclick="go('learn')">← Πίσω στα παιχνίδια</button>
     <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn primary" id="lessonGuideBtn">▶️ Βήμα-βήμα οδηγός</button>
+      <button class="btn primary" id="lessonGuideBtn">▶ Πώς παίζεται (animation)</button>
       <button class="btn ghost" id="lessonVideoBtn">🎥 Βίντεο (YouTube)</button>
     </div>
     <div class="lesson panel" id="lessonBody" style="margin-top:12px"></div>
@@ -1064,32 +1068,38 @@ const STEPS={
 };
 const VIDEO_Q={poker:'πώς παίζεται πόκερ Texas Holdem κανόνες ελληνικά',bridge:'πώς παίζεται μπριτζ κανόνες αρχάριους',phase10:'Phase 10 card game how to play rules',haligali:'Halli Galli how to play rules',bourlot:'πώς παίζεται μπουρλότ belote κανόνες',canasta:'πώς παίζεται κανάστα κανόνες'};
 let GUIDE={id:null,i:0,timer:null};
-function openGuide(id){closeGuide();GUIDE={id,i:0,timer:null};let m=document.createElement('div');m.id='guideModal';m.className='modal-bg';m.onclick=(e)=>{if(e.target===m)closeGuide();};document.body.appendChild(m);renderGuide();}
+const STEP_MS=3800;
+function openGuide(id){closeGuide();GUIDE={id,i:0,timer:null};const m=document.createElement('div');m.id='guideModal';m.className='modal-bg';m.onclick=(e)=>{if(e.target===m)closeGuide();};document.body.appendChild(m);startAuto();renderGuide();}
+function startAuto(){if(GUIDE.timer)clearInterval(GUIDE.timer);GUIDE.timer=setInterval(()=>{const steps=STEPS[GUIDE.id]||[];if(GUIDE.i>=steps.length-1){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();return;}GUIDE.i++;renderGuide();},STEP_MS);}
 function renderGuide(){
   const m=document.getElementById('guideModal');if(!m)return;
-  const g=GAMES.find(x=>x.id===GUIDE.id);const steps=STEPS[GUIDE.id]||[{t:'Σύντομα…'}];const s=steps[GUIDE.i];
-  m.innerHTML=`<div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
-    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${g.ic} ${g.name}</h3><button class="btn ghost sm" onclick="closeGuide()">✕</button></div>
-    <div class="felt" style="margin:12px 0;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
-      ${s.c?`<div class="hand" style="justify-content:center">${s.c.map(c=>cardEl(c,'flip')).join('')}</div>`:''}
-      <div style="text-align:center;font-size:16px;line-height:1.5;max-width:430px"><b style="color:var(--gold)">Βήμα ${GUIDE.i+1} / ${steps.length}</b><br>${s.t}</div>
+  const g=GAMES.find(x=>x.id===GUIDE.id);const steps=STEPS[GUIDE.id]||[{t:'Σύντομα…'}];const s=steps[GUIDE.i];const playing=!!GUIDE.timer;
+  m.innerHTML=`<div class="modal" onclick="event.stopPropagation()" style="max-width:540px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${g.ic} ${g.name} — Πώς παίζεται</h3><button class="btn ghost sm" onclick="closeGuide()">✕</button></div>
+    <div class="felt" style="margin:12px 0;min-height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden">
+      ${s.c?`<div class="hand" style="justify-content:center">${s.c.map(c=>cardEl(c,'deal')).join('')}</div>`:`<div style="font-size:44px">${g.ic}</div>`}
+      <div style="text-align:center;font-size:16px;line-height:1.55;max-width:440px"><b style="color:var(--gold)">Βήμα ${GUIDE.i+1} / ${steps.length}</b><br>${s.t}</div>
     </div>
-    <div style="display:flex;gap:6px;justify-content:center;margin:8px 0">${steps.map((_,i)=>`<span style="width:9px;height:9px;border-radius:50%;background:${i===GUIDE.i?'var(--gold)':'var(--line2)'}"></span>`).join('')}</div>
+    <div class="gbar"><i id="gbarFill"></i></div>
     <div class="controls" style="justify-content:center">
-      <button class="btn" onclick="guidePrev()" ${GUIDE.i===0?'disabled':''}>← Πίσω</button>
-      <button class="btn ghost" onclick="guideAuto()">${GUIDE.timer?'⏸ Παύση':'▶️ Αυτόματο'}</button>
-      <button class="btn primary" onclick="guideNext()">${GUIDE.i>=steps.length-1?'✓ Τέλος':'Επόμενο →'}</button>
+      <button class="btn" onclick="guidePrev()" ${GUIDE.i===0?'disabled':''}>⏮</button>
+      <button class="btn primary" onclick="guideToggle()" style="min-width:120px">${playing?'⏸ Παύση':(GUIDE.i>=steps.length-1?'⟲ Ξανά':'▶ Play')}</button>
+      <button class="btn" onclick="guideStep()">⏭</button>
     </div>
+    <div style="display:flex;gap:6px;justify-content:center;margin:8px 0 2px">${steps.map((_,i)=>`<span onclick="guideGoto(${i})" style="cursor:pointer;width:11px;height:11px;border-radius:50%;background:${i===GUIDE.i?'var(--gold)':'var(--line2)'}"></span>`).join('')}</div>
     <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
       ${g.playable?`<button class="btn gold sm" onclick="closeGuide();startGame('${g.id}')">🃏 Δοκίμασέ το τώρα</button>`:''}
       <button class="btn ghost sm" onclick="openVideo('${g.id}')">🎥 Δες βίντεο (YouTube)</button>
     </div>
   </div>`;
+  m.querySelectorAll('.felt .pc.deal').forEach((el,i)=>{el.style.animationDelay=(i*0.14)+'s';});
+  const fill=document.getElementById('gbarFill');
+  if(fill){if(playing){fill.style.transition='none';fill.style.width='0%';requestAnimationFrame(()=>{fill.style.transition='width '+(STEP_MS/1000)+'s linear';fill.style.width='100%';});}else{fill.style.transition='none';fill.style.width=((GUIDE.i+1)/steps.length*100)+'%';}}
 }
-function guideNext(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.i>=steps.length-1){closeGuide();return;}GUIDE.i++;renderGuide();}
-function guidePrev(){if(GUIDE.i>0){GUIDE.i--;renderGuide();}}
-function guideAuto(){if(GUIDE.timer){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();return;}
-  GUIDE.timer=setInterval(()=>{const steps=STEPS[GUIDE.id]||[];if(GUIDE.i>=steps.length-1){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();return;}GUIDE.i++;renderGuide();},3600);renderGuide();}
+function guideToggle(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.timer){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();}else{if(GUIDE.i>=steps.length-1)GUIDE.i=0;startAuto();renderGuide();}}
+function guideStep(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.i<steps.length-1)GUIDE.i++;if(GUIDE.timer)startAuto();renderGuide();}
+function guidePrev(){if(GUIDE.i>0)GUIDE.i--;if(GUIDE.timer)startAuto();renderGuide();}
+function guideGoto(i){GUIDE.i=i;if(GUIDE.timer)startAuto();renderGuide();}
 function closeGuide(){if(GUIDE.timer)clearInterval(GUIDE.timer);GUIDE.timer=null;const m=document.getElementById('guideModal');if(m)m.remove();}
 function openVideo(id){const g=GAMES.find(x=>x.id===id);const q=VIDEO_Q[id]||(g.name.replace(/\s*\(.+?\)/g,'')+' κανόνες πώς παίζεται τράπουλα');window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank');}
 
@@ -1248,6 +1258,7 @@ const EXAMPLES={
 const VIEWS=['home','learn','lesson','play','table','puzzle','progress'];
 let curGameId=null;
 function go(v){
+  if(typeof closeGuide==='function')closeGuide();
   VIEWS.forEach(x=>document.getElementById('view-'+x).classList.toggle('hidden',x!==v));
   document.querySelectorAll('nav.bottom button').forEach(b=>b.classList.toggle('active',b.dataset.v===v));
   window.scrollTo(0,0);
@@ -1295,8 +1306,9 @@ function renderGameList(){
   document.getElementById('gameList').innerHTML=GAMES.map(g=>{
     const done=S.lessons[g.id];
     return `<div class="card gamecard" onclick="openLesson('${g.id}')">
+      <span class="gcard-play" onclick="event.stopPropagation();openGuide('${g.id}')">▶ Πώς παίζεται</span>
       ${g.playable?'<span class="playable tag red">▶ Παίξιμο</span>':''}
-      <div class="ic">${g.ic}</div>
+      <div class="ic" style="margin-top:22px">${g.ic}</div>
       <h3>${g.name} ${done?'<span class="badge-done">✓</span>':''}</h3>
       <p class="sub">${g.short}</p>
       <div class="meta"><span class="tag">${g.players} παίκτες</span><span class="tag">${g.deck}</span></div>
