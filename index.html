@@ -166,7 +166,17 @@ table.rank th{color:var(--mut);font-weight:600}
 
 .gamecard{cursor:pointer;transition:.15s;position:relative;overflow:hidden}
 .gamecard:hover{border-color:var(--red);transform:translateY(-3px)}
-.gamecard .ic{font-size:30px}
+.gamecard .ic{
+  width:66px;height:66px;margin:18px auto 10px;border-radius:18px;display:grid;place-items:center;font-size:34px;
+  background:radial-gradient(circle at 32% 26%,#333c50,#161a23 72%);
+  box-shadow:0 8px 16px rgba(0,0,0,.55), inset 0 2px 3px rgba(255,255,255,.18), inset 0 -5px 8px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.06);
+  transform:perspective(340px) rotateX(14deg);transform-style:preserve-3d;
+  transition:transform .35s cubic-bezier(.2,.8,.3,1), box-shadow .35s;
+  text-shadow:0 3px 4px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.25);position:relative}
+.gamecard .ic::after{content:'';position:absolute;left:12%;right:12%;top:8%;height:34%;border-radius:50%;
+  background:linear-gradient(180deg,rgba(255,255,255,.28),rgba(255,255,255,0));pointer-events:none}
+.gamecard:hover .ic{transform:perspective(340px) rotateX(4deg) rotateY(-16deg) translateY(-3px) scale(1.05);
+  box-shadow:0 14px 26px rgba(0,0,0,.6), inset 0 2px 3px rgba(255,255,255,.22), inset 0 -5px 8px rgba(0,0,0,.55)}
 .gamecard .meta{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .playable{position:absolute;top:10px;right:10px}
 .stat{text-align:center}
@@ -393,7 +403,7 @@ const SFX=(()=>{
 })();
 /* Γεννητική μουσική «ελληνικό καφενείο»: Καφενείο/Ρεμπέτικο/Ζεϊμπέκικο/Λαϊκό/Τζαζ */
 const MUSIC=(()=>{
-  let playing=false,master=null,timer=null,step=0;
+  let playing=false,master=null,timer=null,step=0,radioT=null;
   function mtof(m){return 440*Math.pow(2,(m-69)/12);}
   function ensure(){const c=audioCtx();if(!c)return null;if(!master){master=c.createGain();master.gain.value=(THEME.musicVol==null?0.35:THEME.musicVol)*0.5;master.connect(c.destination);}return c;}
   function v(c,m,t,dur,gain,wave,filt,detune){const g=c.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=filt||2200;const o=c.createOscillator();o.type=wave||'triangle';o.frequency.value=mtof(m);o.connect(f);let o2=null;if(detune){o2=c.createOscillator();o2.type=wave||'triangle';o2.frequency.value=mtof(m);o2.detune.value=detune;o2.connect(f);}f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.05);if(o2){o2.start(t);o2.stop(t+dur+0.05);}}
@@ -409,14 +419,19 @@ const MUSIC=(()=>{
   function skey(){return STYLES[THEME.musicStyle]?THEME.musicStyle:'kafeneio';}
   function tickOnce(){const c=ensure();if(!c||!playing)return;const t=c.currentTime+0.05;try{STYLES[skey()].bar(c,t,step);}catch(e){}step++;}
   function schedule(){if(!playing)return;if(timer)clearTimeout(timer);const st=STYLES[skey()];const ms=typeof st.ms==='function'?st.ms(step):st.ms;timer=setTimeout(()=>{tickOnce();schedule();},ms);}
+  function pickNext(){const ks=Object.keys(STYLES),cur=skey();let k;do{k=ks[Math.floor(Math.random()*ks.length)];}while(k===cur&&ks.length>1);return k;}
+  function stopRadio(){if(radioT)clearTimeout(radioT);radioT=null;}
+  function radioLoop(){if(!playing||!THEME.musicRadio)return;radioT=setTimeout(()=>{const k=pickNext();THEME.musicStyle=k;if(typeof saveTheme==='function')saveTheme();step=0;try{if(typeof toast==='function')toast('📻 '+STYLES[k].name);}catch(e){}radioLoop();},22000+Math.random()*10000);}
   return {
     styles(){return Object.keys(STYLES).map(k=>[k,STYLES[k].name]);},
-    start(){const c=ensure();if(!c)return false;playing=true;THEME.music=true;if(typeof saveTheme==='function')saveTheme();step=0;tickOnce();schedule();return true;},
-    stop(){playing=false;THEME.music=false;if(typeof saveTheme==='function')saveTheme();if(timer)clearTimeout(timer);timer=null;},
+    start(){const c=ensure();if(!c)return false;playing=true;THEME.music=true;if(typeof saveTheme==='function')saveTheme();step=0;tickOnce();schedule();if(THEME.musicRadio){stopRadio();radioLoop();}return true;},
+    stop(){playing=false;THEME.music=false;if(typeof saveTheme==='function')saveTheme();if(timer)clearTimeout(timer);timer=null;stopRadio();},
     toggle(){playing?this.stop():this.start();return playing;},
     setStyle(k){THEME.musicStyle=k;if(typeof saveTheme==='function')saveTheme();step=0;if(!playing)this.start();},
+    setRadio(v){THEME.musicRadio=v;if(typeof saveTheme==='function')saveTheme();if(v){if(!playing)this.start();stopRadio();radioLoop();}else stopRadio();},
+    isRadio(){return !!THEME.musicRadio;},
     isOn(){return playing;},
-    rearm(){if(playing){if(timer)clearTimeout(timer);schedule();}},
+    rearm(){if(playing){if(timer)clearTimeout(timer);schedule();if(THEME.musicRadio){stopRadio();radioLoop();}}},
     vol(vv){THEME.musicVol=vv;if(typeof saveTheme==='function')saveTheme();if(master)master.gain.value=vv*0.5;}
   };
 })();
@@ -1390,7 +1405,7 @@ function renderGameList(){
     return `<div class="card gamecard" onclick="openLesson('${g.id}')">
       <span class="gcard-play" onclick="event.stopPropagation();openGuide('${g.id}')">▶ Πώς παίζεται</span>
       ${g.playable?'<span class="playable tag red">▶ Παίξιμο</span>':''}
-      <div class="ic" style="margin-top:22px">${g.ic}</div>
+      <div class="ic">${g.ic}</div>
       <h3>${g.name} ${done?'<span class="badge-done">✓</span>':''}</h3>
       <p class="sub">${g.short}</p>
       <div class="meta"><span class="tag">${g.players} παίκτες</span><span class="tag">${g.deck}</span></div>
@@ -3223,7 +3238,7 @@ const THEME_KEY='trapoula360_theme';
 const BACKS=[['','Κόκκινο'],['back-blue','Μπλε'],['back-green','Πράσινο'],['back-gold','Χρυσό'],['back-purple','Μωβ'],['back-plaid','Καρό']];
 const FELTS=[['','Μπορντό'],['felt-blue','Μπλε νύχτα'],['felt-green','Πράσινο'],['felt-charcoal','Ανθρακί'],['felt-purple','Μωβ']];
 const ACCENTS=[['','Κόκκινο'],['accent-gold','Χρυσό'],['accent-cyan','Κυανό'],['accent-purple','Μωβ']];
-let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true,haptics:true,music:false,musicVol:0.35,musicStyle:'kafeneio',ambience:false};
+let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true,haptics:true,music:false,musicVol:0.35,musicStyle:'kafeneio',ambience:false,musicRadio:false};
 function loadTheme(){try{THEME=Object.assign(THEME,JSON.parse(localStorage.getItem(THEME_KEY)||'{}'));}catch(e){}applyTheme();}
 function applyTheme(){
   document.body.className='';
@@ -3262,7 +3277,9 @@ function openSettings(keep){
     <div class="pill-row">${[[true,'Ναι'],[false,'Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.haptics!==false)===v?'primary':'ghost'}" onclick="setPref('haptics',${v});HAP(25);">${nm}</button>`).join('')}</div>
     <h4 style="color:var(--gold)">🎵 Μουσική — Ελληνικό καφενείο</h4>
     <div class="pill-row">${MUSIC.styles().map(([k,nm])=>`<button class="btn sm ${(THEME.musicStyle||'kafeneio')===k?'primary':'ghost'}" onclick="MUSIC.setStyle('${k}');document.getElementById('musicBtn').style.color=MUSIC.isOn()?'var(--gold)':'';openSettings(true);">${nm}</button>`).join('')}</div>
-    <div class="pill-row" style="margin-top:6px"><button class="btn sm ${MUSIC.isOn()?'primary':'ghost'}" onclick="MUSIC.toggle();document.getElementById('musicBtn').style.color=MUSIC.isOn()?'var(--gold)':'';openSettings(true);">${MUSIC.isOn()?'⏸ Παύση':'▶ Έναρξη'}</button></div>
+    <div class="pill-row" style="margin-top:6px"><button class="btn sm ${MUSIC.isOn()?'primary':'ghost'}" onclick="MUSIC.toggle();document.getElementById('musicBtn').style.color=MUSIC.isOn()?'var(--gold)':'';openSettings(true);">${MUSIC.isOn()?'⏸ Παύση':'▶ Έναρξη'}</button>
+      <button class="btn sm ${MUSIC.isRadio()?'gold':'ghost'}" onclick="MUSIC.setRadio(!MUSIC.isRadio());document.getElementById('musicBtn').style.color=MUSIC.isOn()?'var(--gold)':'';openSettings(true);">📻 Ραδιόφωνο ${MUSIC.isRadio()?'ON':'OFF'}</button></div>
+    ${MUSIC.isRadio()?'<p class="sub" style="margin:4px 0 0">📻 Αλλάζει είδος αυτόματα κάθε ~25 δευτ.</p>':''}
     <div style="display:flex;align-items:center;gap:10px;margin-top:8px"><span class="sub">🔉 Ένταση</span><input type="range" min="0" max="1" step="0.05" value="${THEME.musicVol==null?0.35:THEME.musicVol}" oninput="MUSIC.vol(+this.value)" style="flex:1"><span>🔊</span></div>
     <h4 style="color:var(--gold)">☕ Ήχοι καφενείου (ατμόσφαιρα)</h4>
     <p class="sub" style="margin:2px 0 6px">Μουρμουρητό κουβέντας &amp; κουδουνάκια φλιτζανιών.</p>
