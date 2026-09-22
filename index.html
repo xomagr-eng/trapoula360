@@ -276,6 +276,10 @@ body.accent-purple{--red:#8b3fd6;--red2:#b06bff;--redlow:#1f0f33}
   <!-- ========== LESSON (reader) ========== -->
   <section id="view-lesson" class="hidden">
     <button class="btn ghost sm" onclick="go('learn')">← Πίσω στα παιχνίδια</button>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn primary" id="lessonGuideBtn">▶️ Βήμα-βήμα οδηγός</button>
+      <button class="btn ghost" id="lessonVideoBtn">🎥 Βίντεο (YouTube)</button>
+    </div>
     <div class="lesson panel" id="lessonBody" style="margin-top:12px"></div>
     <div style="display:flex;gap:10px;justify-content:space-between;margin-top:14px;flex-wrap:wrap">
       <button class="btn" id="lessonPlayBtn"></button>
@@ -912,6 +916,174 @@ function rankTable(){
   </table>`;
 }
 
+/* ---------- STEP-BY-STEP GUIDES ("βιντεάκια") ---------- */
+const S_=(r,s)=>({r,s});
+const STEPS={
+ poker:[
+  {t:'Παίρνεις 2 κλειστά φύλλα (hole cards). Εδώ: Άσσος & Ρήγας μπαστούνι — δυνατό ξεκίνημα!',c:[S_('A','♠'),S_('K','♠')]},
+  {t:'Preflop: μπαίνουν τα blinds. Ποντάρεις (raise), καλύπτεις (call) ή τα παρατάς (fold). Με A-K → raise.'},
+  {t:'Flop: ανοίγουν 3 κοινά φύλλα. Έκανες ζευγάρι Άσσους! Νέος γύρος ποντάρισμα.',c:[S_('A','♥'),S_('7','♦'),S_('2','♣')]},
+  {t:'Turn & River: ανοίγουν άλλα 2 κοινά φύλλα, ένα-ένα, με ποντάρισμα σε κάθε ένα.'},
+  {t:'Showdown: η καλύτερη 5άδα κερδίζει. Θυμήσου τη σειρά: Φλος > Καρέ > Φουλ > Χρώμα > Κέντα > Τριάδα > Δύο ζεύγη > Ζεύγος.'}
+ ],
+ poka:[
+  {t:'Παίρνεις 5 φύλλα. Εδώ ένα ζευγάρι Ρήγες — καλή βάση.',c:[S_('K','♣'),S_('K','♦'),S_('7','♠'),S_('3','♥'),S_('9','♦')]},
+  {t:'1ος γύρος στοιχήματος: call / raise / fold.'},
+  {t:'Αλλαγή: κράτα το ζευγάρι, πέτα τα 3 άσχετα και πάρε 3 νέα φύλλα.'},
+  {t:'2ος γύρος στοιχήματος. Το «σερβί» (0 αλλαγές) δείχνει δύναμη ή μπλόφα!'},
+  {t:'Showdown: αν βελτιώθηκες σε τριάδα/φουλ κερδίζεις. Ίδια σειρά ισχύος με το πόκερ.'}
+ ],
+ xeri:[
+  {t:'4 φύλλα σε σένα, 4 στο τραπέζι. Πάνω-πάνω π.χ. ένα 8.',c:[S_('8','♠')]},
+  {t:'Έχεις 8 στο χέρι → το ρίχνεις, ταιριάζει την αξία → ΜΑΖΕΜΑ!',c:[S_('8','♣')]},
+  {t:'Αν στο τραπέζι μείνει 1 φύλλο και το ταιριάξεις → ΞΕΡΗ! +10 πόντοι.'},
+  {t:'Ο Βαλές (J) είναι μαγικός: μαζεύει ΟΛΑ τα φύλλα του τραπεζιού!',c:[S_('J','♠')]},
+  {t:'Στο τέλος μετράς πόντους: Άσσοι, Βαλέδες, 10♦, 2♣, πλειοψηφία φύλλων & ξερές.'}
+ ],
+ koumkan:[
+  {t:'10 φύλλα σε σένα (2 τράπουλες + τζόκερ). Στόχος: όλα σε τριάδες & κέντες.'},
+  {t:'Στη σειρά σου τραβάς ένα φύλλο (από στοίβα ή καμένα).'},
+  {t:'Κέντα = διαδοχικά ίδιου χρώματος (5♥-6♥-7♥). Τριάδα = ίδια αξία (7-7-7).',c:[S_('5','♥'),S_('6','♥'),S_('7','♥')]},
+  {t:'Ο τζόκερ (★) αντικαθιστά όποιο φύλλο σού λείπει.'},
+  {t:'Πέτα ένα φύλλο. Όταν όλα δένουν → ΚΛΕΙΣΕ και κέρδισες!'}
+ ],
+ thanasis:[
+  {t:'10 φύλλα. Στόχος: 2 τριάδες + 1 τετράδα.'},
+  {t:'Κάθε γύρο τραβάς ένα φύλλο και πετάς ένα.'},
+  {t:'π.χ. 9♣-9♦-9♥ (τριάδα) και 4♠-5♠-6♠-7♠ (τετράδα-κέντα).',c:[S_('9','♣'),S_('9','♦'),S_('9','♥')]},
+  {t:'Μόλις τα συμπληρώσεις, κατέβασέ τα στο τραπέζι.'},
+  {t:'Οι υπόλοιποι μετρούν ό,τι κρατούν (φιγούρες=10). Κερδίζει ο λιγότερος.'}
+ ],
+ biriba:[
+  {t:'11 φύλλα (2 τράπουλες + τζόκερ). Παίζεται συνήθως σε ζευγάρια.'},
+  {t:'Τράβα/πέτα και φτιάξε τριάδες & κέντες.'},
+  {t:'«Μανούλα» = καθαρή ένωση χωρίς τζόκερ → πολύ περισσότεροι πόντοι.'},
+  {t:'Όταν αδειάσεις το χέρι σου, παίρνεις τον «κόκκο» (11 έξτρα φύλλα).'},
+  {t:'Κλείσε αφού έχεις πάρει τον κόκκο — σε συνεννόηση με τον παρτενέρ σου.'}
+ ],
+ canasta:[
+  {t:'11 φύλλα. Μπαλαντέρ (wild) = τα τζόκερ ΚΑΙ όλα τα 2.'},
+  {t:'Τράβα/πέτα και φτιάξε ενώσεις 3+ φύλλων ίδιας αξίας.'},
+  {t:'ΚΑΝΑΣΤΑ = ένωση 7 φύλλων! Καθαρή (χωρίς wild)=500, μικτή=300.'},
+  {t:'Τα κόκκινα 3 δίνουν μπόνους — κατέβασέ τα.'},
+  {t:'Χρειάζεσαι τουλάχιστον 1 κανάστα για να «κλείσεις».'}
+ ],
+ diloti:[
+  {t:'6 φύλλα σε σένα, 4 ανοιχτά στο τραπέζι.'},
+  {t:'Μαζεύεις με ίδια αξία Ή με άθροισμα: 6 = 2 + 4.',c:[S_('2','♣'),S_('4','♦'),S_('6','♠')]},
+  {t:'Μπορείς να «δηλώσεις» μια αξία για να τη μαζέψεις αργότερα.'},
+  {t:'Καθάρισε όλο το τραπέζι → ΞΕΡΗ +10.'},
+  {t:'Πόντοι: Άσσοι, 10♦, 2♣, πλειοψηφία. Νικητής ο πρώτος στους 61.'}
+ ],
+ prefa:[
+  {t:'10 φύλλα (τράπουλα 32). Δηλώνεις πόσες μπάζες αναλαμβάνεις + ατού, ή «Πάσο».'},
+  {t:'Σειρά ισχύος ατού: Μπαστούνι > Σπαθί > Καρό > Κούπα.'},
+  {t:'Ο δηλωτής παίρνει τα 2 φύλλα του μπάζου και κρύβει 2.'},
+  {t:'Παίζονται 10 μπάζες: ακολουθείς το χρώμα· το ατού κερδίζει.'},
+  {t:'Ο δηλωτής πρέπει να πετύχει τις μπάζες που υποσχέθηκε — αλλιώς «πέφτει».'}
+ ],
+ bridge:[
+  {t:'13 φύλλα σε καθέναν (4 παίκτες, 2 ζευγάρια αντικριστά).'},
+  {t:'Μετρήστε HCP: Άσσος=4, Ρήγας=3, Ντάμα=2, Βαλές=1.'},
+  {t:'Η πλευρά με τους περισσότερους HCP παίζει το «συμβόλαιο» (ατού + επίπεδο).'},
+  {t:'Ο συμπαίκτης του εκτελεστή γίνεται ΝΤΑΜΙ: κατεβάζει τα φύλλα ανοιχτά.'},
+  {t:'13 λεβέ. Ο εκτελεστής θέλει «επίπεδο + 6» λεβέ για να πετύχει.'}
+ ],
+ bourlot:[
+  {t:'8 φύλλα (τράπουλα 32). Διάλεξε ατού (αγορά).'},
+  {t:'Στο ατού: J > 9 > A > 10 > K > Q > 8 > 7. Ο J αξίζει 20, το 9 αξίζει 14!',c:[S_('J','♠'),S_('9','♠')]},
+  {t:'Μπελότ-Ρεμπελότ: αν κρατάς Ντάμα + Ρήγα ατού → +20 πόντοι.',c:[S_('Q','♠'),S_('K','♠')]},
+  {t:'Παίξε τις μπάζες· «φόρτωσε» πόντους (10, A) στη μπάζα του παρτενέρ.'},
+  {t:'Η ομάδα που αγόρασε χρειάζεται ≥81 από τους 162 πόντους.'}
+ ],
+ skambili:[
+  {t:'8 φύλλα ο καθένας. Ρίχνεις ένα φύλλο τη φορά.'},
+  {t:'Ακολουθείς το χρώμα που παίχτηκε πρώτο.'},
+  {t:'Το δυνατότερο φύλλο του χρώματος μαζεύει όλη τη μπάζα.',c:[S_('A','♥')]},
+  {t:'Μάζεψε Άσσους & φιγούρες — αυτά δίνουν τους πόντους.'},
+  {t:'Στο τέλος, ο παίκτης με τους περισσότερους πόντους κερδίζει.'}
+ ],
+ agonia:[
+  {t:'7 φύλλα. Ταίριαξε το πάνω φύλλο σε ΧΡΩΜΑ ή ΑΡΙΘΜΟ.'},
+  {t:'7 = ο επόμενος τραβά +2 φύλλα (σωρεύεται με άλλα 7).',c:[S_('7','♦')]},
+  {t:'8 = μπλόκο (χάνει σειρά). Άσσος = αλλαγή χρώματος. Βαλές = αλλαγή φοράς.',c:[S_('8','♠'),S_('A','♥'),S_('J','♣')]},
+  {t:'Αν δεν έχεις τι να παίξεις, τραβάς ένα φύλλο.'},
+  {t:'Άδειασε το χέρι σου πρώτος → νίκη!'}
+ ],
+ blofa:[
+  {t:'Μοιράζονται όλα τα φύλλα. Παίζετε αξίες με τη σειρά: A, 2, 3, 4…'},
+  {t:'Ρίχνεις 1-4 φύλλα ΚΛΕΙΣΤΑ δηλώνοντας την αξία — μπορείς να λες ψέματα!'},
+  {t:'Όποιος αμφιβάλλει φωνάζει «Μπλόφα!» και ελέγχει τα φύλλα σου.'},
+  {t:'Έλεγες ψέματα → παίρνεις όλο τον σωρό. Έλεγες αλήθεια → τον παίρνει αυτός.'},
+  {t:'Άδειασε πρώτος (χωρίς να σε πιάσουν σε ψέμα) → νίκη!'}
+ ],
+ pastra:[
+  {t:'4 φύλλα σε σένα, 4 στο τραπέζι.'},
+  {t:'Μάζεμα με ίδια αξία ή με άθροισμα: 7 = 5 + 2.',c:[S_('5','♥'),S_('2','♠'),S_('7','♣')]},
+  {t:'Καθάρισε ΟΛΟ το τραπέζι με μία κίνηση → ΠΑΣΤΡΑ +1!'},
+  {t:'Οι φιγούρες μαζεύονται μόνο με ίδια φιγούρα (δεν αθροίζονται).'},
+  {t:'Πόντοι: Άσσοι, Βαλέδες, 10♦, 2♣, πλειοψηφία φύλλων & πάστρες.'}
+ ],
+ gaidaros:[
+  {t:'4 φύλλα ο καθένας (τόσες τετράδες όσοι οι παίκτες).'},
+  {t:'Αποφάσισε ποια τετράδα θα κυνηγήσεις (αυτή που ήδη έχεις τα περισσότερα).'},
+  {t:'Δίνεις ένα άχρηστο φύλλο αριστερά & παίρνεις ένα από δεξιά — ταυτόχρονα.'},
+  {t:'Μάζεψε 4 όμοια (καρέ) πρώτος → σώζεσαι!',c:[S_('Q','♠'),S_('Q','♥'),S_('Q','♦'),S_('Q','♣')]},
+  {t:'Ο τελευταίος χωρίς καρέ είναι ο «γάιδαρος»!'}
+ ],
+ moutzouris:[
+  {t:'Μοιράζονται όλα τα φύλλα — μία Ντάμα λείπει, άρα υπάρχει 1 μονό φύλλο.'},
+  {t:'Πέτα αμέσως όλα τα ζευγάρια που έχεις στο χέρι.'},
+  {t:'Στη σειρά σου, τράβα ένα κρυφό φύλλο από τον διπλανό σου.'},
+  {t:'Αν το νέο φύλλο κάνει ζευγάρι, πέτα το.'},
+  {t:'Όποιος μείνει στο τέλος με το μονό φύλλο είναι ο «μουτζούρης» — χάνει!'}
+ ],
+ haligali:[
+  {t:'Οι κάρτες δείχνουν φρούτα (🍓🍌🍋🥝) σε ποσότητες 1 έως 5.'},
+  {t:'Κάθε παίκτης γυρίζει με τη σειρά μία κάρτα ανοιχτή.'},
+  {t:'Πρόσεχε το σύνολο ανά φρούτο στις ανοιχτές κάρτες.'},
+  {t:'Μόλις φανούν ΑΚΡΙΒΩΣ 5 ίδια φρούτα → χτύπα το καμπανάκι πρώτος! 🔔'},
+  {t:'Σωστό χτύπημα → μαζεύεις όλες τις κάρτες. Λάθος → ποινή. Μάζεψέ τες όλες → νίκη!'}
+ ],
+ phase10:[
+  {t:'10 φύλλα με αριθμούς 1-12 σε 4 χρώματα + μπαλαντέρ (wild).'},
+  {t:'Φάση 1: 2 σετ των 3 (τρεις ίδιοι αριθμοί ×2).'},
+  {t:'Τράβα από στοίβα/καμένα και πέτα ένα, ώσπου το χέρι να καλύπτει τη φάση.'},
+  {t:'Ο μπαλαντέρ γίνεται όποιο φύλλο θες. Σετ=ίδιοι αριθμοί, Κέντα=διαδοχικοί.'},
+  {t:'Ολοκλήρωσε τη φάση → προχώρα. Πρώτος που τελειώνει και τις 10 φάσεις → νίκη!'}
+ ]
+};
+const VIDEO_Q={poker:'πώς παίζεται πόκερ Texas Holdem κανόνες ελληνικά',bridge:'πώς παίζεται μπριτζ κανόνες αρχάριους',phase10:'Phase 10 card game how to play rules',haligali:'Halli Galli how to play rules',bourlot:'πώς παίζεται μπουρλότ belote κανόνες',canasta:'πώς παίζεται κανάστα κανόνες'};
+let GUIDE={id:null,i:0,timer:null};
+function openGuide(id){closeGuide();GUIDE={id,i:0,timer:null};let m=document.createElement('div');m.id='guideModal';m.className='modal-bg';m.onclick=(e)=>{if(e.target===m)closeGuide();};document.body.appendChild(m);renderGuide();}
+function renderGuide(){
+  const m=document.getElementById('guideModal');if(!m)return;
+  const g=GAMES.find(x=>x.id===GUIDE.id);const steps=STEPS[GUIDE.id]||[{t:'Σύντομα…'}];const s=steps[GUIDE.i];
+  m.innerHTML=`<div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${g.ic} ${g.name}</h3><button class="btn ghost sm" onclick="closeGuide()">✕</button></div>
+    <div class="felt" style="margin:12px 0;min-height:170px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">
+      ${s.c?`<div class="hand" style="justify-content:center">${s.c.map(c=>cardEl(c,'flip')).join('')}</div>`:''}
+      <div style="text-align:center;font-size:16px;line-height:1.5;max-width:430px"><b style="color:var(--gold)">Βήμα ${GUIDE.i+1} / ${steps.length}</b><br>${s.t}</div>
+    </div>
+    <div style="display:flex;gap:6px;justify-content:center;margin:8px 0">${steps.map((_,i)=>`<span style="width:9px;height:9px;border-radius:50%;background:${i===GUIDE.i?'var(--gold)':'var(--line2)'}"></span>`).join('')}</div>
+    <div class="controls" style="justify-content:center">
+      <button class="btn" onclick="guidePrev()" ${GUIDE.i===0?'disabled':''}>← Πίσω</button>
+      <button class="btn ghost" onclick="guideAuto()">${GUIDE.timer?'⏸ Παύση':'▶️ Αυτόματο'}</button>
+      <button class="btn primary" onclick="guideNext()">${GUIDE.i>=steps.length-1?'✓ Τέλος':'Επόμενο →'}</button>
+    </div>
+    <div style="text-align:center;margin-top:10px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      ${g.playable?`<button class="btn gold sm" onclick="closeGuide();startGame('${g.id}')">🃏 Δοκίμασέ το τώρα</button>`:''}
+      <button class="btn ghost sm" onclick="openVideo('${g.id}')">🎥 Δες βίντεο (YouTube)</button>
+    </div>
+  </div>`;
+}
+function guideNext(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.i>=steps.length-1){closeGuide();return;}GUIDE.i++;renderGuide();}
+function guidePrev(){if(GUIDE.i>0){GUIDE.i--;renderGuide();}}
+function guideAuto(){if(GUIDE.timer){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();return;}
+  GUIDE.timer=setInterval(()=>{const steps=STEPS[GUIDE.id]||[];if(GUIDE.i>=steps.length-1){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();return;}GUIDE.i++;renderGuide();},3600);renderGuide();}
+function closeGuide(){if(GUIDE.timer)clearInterval(GUIDE.timer);GUIDE.timer=null;const m=document.getElementById('guideModal');if(m)m.remove();}
+function openVideo(id){const g=GAMES.find(x=>x.id===id);const q=VIDEO_Q[id]||(g.name.replace(/\s*\(.+?\)/g,'')+' κανόνες πώς παίζεται τράπουλα');window.open('https://www.youtube.com/results?search_query='+encodeURIComponent(q),'_blank');}
+
 /* ---------- ROUTER ---------- */
 const VIEWS=['home','learn','lesson','play','table','puzzle','progress'];
 let curGameId=null;
@@ -977,6 +1149,8 @@ function renderGameList(){
 function openLesson(id){
   curGameId=id;const g=GAMES.find(x=>x.id===id);
   document.getElementById('lessonBody').innerHTML=LESSONS[id]?LESSONS[id]():'<p>Σύντομα…</p>';
+  document.getElementById('lessonGuideBtn').onclick=()=>openGuide(id);
+  document.getElementById('lessonVideoBtn').onclick=()=>openVideo(id);
   const playBtn=document.getElementById('lessonPlayBtn');
   if(g.playable){playBtn.style.display='';playBtn.textContent='🃏 Παίξε '+g.name;playBtn.className='btn primary';playBtn.onclick=()=>startGame(id);}
   else{playBtn.style.display='none';}
@@ -997,8 +1171,15 @@ function renderPlayList(){
       <div class="meta"><span class="tag red">▶ Παίξε vs AI</span></div>
     </div>`).join('');
 }
-function startGame(id){curGameId=id;go('table');GAME_ENGINES[id]();}
-function quitGame(){if(window._activeGame&&window._activeGame.cleanup)window._activeGame.cleanup();window._activeGame=null;go('play');}
+function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}}
+function startGame(id){
+  const old=window._activeGame;if(old){old.over=true;try{old.cleanup&&old.cleanup();}catch(e){}}
+  clearAllTimers();                       // kill stale timers so «Ξανά» never clobbers the fresh game
+  curGameId=id;go('table');
+  try{GAME_ENGINES[id]();}
+  catch(e){host().innerHTML='<div class="panel" style="text-align:center;margin-top:20px"><h3>⚠️ Ουπς</h3><p class="sub">Κάτι πήγε στραβά. Δοκίμασε ξανά.</p><button class="btn primary" onclick="startGame(\''+id+'\')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>';}
+}
+function quitGame(){const old=window._activeGame;if(old){old.over=true;try{old.cleanup&&old.cleanup();}catch(e){}}clearAllTimers();window._activeGame=null;go('play');}
 function recordGame(id,won){
   S.played++;if(won)S.wins_total++;
   S.games[id]=(S.games[id]||0)+1;if(won)S.wins[id]=(S.wins[id]||0)+1;
