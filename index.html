@@ -373,6 +373,21 @@ let S=load();
 var AILEVEL=2, HG_SPEED=1;                 // 0=easy 1=normal 2=hard ; HG_SPEED flips-per-sec multiplier
 function aiRnd(){return [0.32,0.15,0.04][AILEVEL]!=null?[0.32,0.15,0.04][AILEVEL]:0.04;}  // prob of a suboptimal move
 function pokerIters(){return [90,220,460][AILEVEL]||460;}
+/* ---------- SFX (Web Audio, no files) ---------- */
+const SFX=(()=>{
+  let ctx=null;
+  function ac(){if(!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ctx&&ctx.state==='suspended'){try{ctx.resume();}catch(e){}}return ctx;}
+  function on(){return typeof THEME==='undefined'?true:THEME.sound!==false;}
+  function tone(freq,dur,type,gain,slideTo){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,t);if(slideTo)try{o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);}catch(e){}g.gain.setValueAtTime(gain||0.14,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.03);}
+  function noise(dur,gain,freq){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const n=Math.max(1,Math.floor(c.sampleRate*dur));const buf=c.createBuffer(1,n,c.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const src=c.createBufferSource();src.buffer=buf;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=freq||1400;const g=c.createGain();g.gain.value=gain||0.2;src.connect(f);f.connect(g);g.connect(c.destination);src.start(t);}
+  return {
+    card(){noise(0.08,0.16,1700);tone(340,0.05,'square',0.04);},          // flick of a card
+    grab(){noise(0.24,0.15,850);tone(240,0.2,'sine',0.06,110);},          // sweep / collect
+    bell(){tone(1400,0.5,'sine',0.25,880);tone(2100,0.35,'sine',0.1);},   // ding
+    win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.13),i*95));},
+    resume(){ac();}
+  };
+})();
 function load(){try{return Object.assign({},DEFAULT,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){return {...DEFAULT}}}
 function save(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 function addXP(n,reason){S.xp+=n; save(); toast('+'+n+' XP · '+reason,'good'); refreshHeader(); checkAch();}
@@ -1107,6 +1122,7 @@ function renderGuide(){
   m.querySelectorAll('.felt .pc.gthrow,.felt .pc.gcap').forEach((el,i)=>{el.style.animationDelay=(i*0.16)+'s';});
   const fill=document.getElementById('gbarFill');
   if(fill){if(playing){fill.style.transition='none';fill.style.width='0%';requestAnimationFrame(()=>{fill.style.transition='width '+(STEP_MS/1000)+'s linear';fill.style.width='100%';});}else{fill.style.transition='none';fill.style.width=((GUIDE.i+1)/steps.length*100)+'%';}}
+  if(s.c){SFX.card();if(cap)setTimeout(()=>SFX.grab(),720);}
 }
 function guideToggle(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.timer){clearInterval(GUIDE.timer);GUIDE.timer=null;renderGuide();}else{if(GUIDE.i>=steps.length-1)GUIDE.i=0;startAuto();renderGuide();}}
 function guideStep(){const steps=STEPS[GUIDE.id]||[];if(GUIDE.i<steps.length-1)GUIDE.i++;if(GUIDE.timer)startAuto();renderGuide();}
@@ -1369,7 +1385,7 @@ function quitGame(){const old=window._activeGame;if(old){old.over=true;try{old.c
 function recordGame(id,won){
   S.played++;if(won)S.wins_total++;
   S.games[id]=(S.games[id]||0)+1;if(won)S.wins[id]=(S.wins[id]||0)+1;
-  save();addXP(won?40:15,won?'νίκη!':'παρτίδα');checkAch();
+  save();if(won)SFX.win();addXP(won?40:15,won?'νίκη!':'παρτίδα');checkAch();
 }
 
 /* ---------- TOAST ---------- */
@@ -1445,6 +1461,7 @@ GAME_ENGINES.xeri=function(){
     if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
     // end?
     if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length===0){return endGame();}
+    if(captured)SFX.grab();if(p!==0&&!captured)SFX.card();
     st.turn=1-p;render();
     if(st.turn===1&&!st.over)setTimeout(aiMove,750);
   }
@@ -2247,8 +2264,8 @@ GAME_ENGINES.diloti=function(){
     if(cap){const wasCards=st.table.length;const got=cap.sort((a,b)=>b-a).map(i=>st.table.splice(i,1)[0]);
       st.piles[p].push(...got,card);st.last=p;
       let xe=false;if(st.table.length===0&&wasCards>0){st.xeri[p]++;st.scores[p]+=10;xe=true;}
-      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1} φύλλων${xe?' <b>ΞΕΡΗ! +10</b>':''}`);
-    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);}
+      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1} φύλλων${xe?' <b>ΞΕΡΗ! +10</b>':''}`);SFX.grab();
+    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);if(p!==0)SFX.card();}
     if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
     if(st.hands[0].length===0&&st.hands[1].length===0&&!st.deck.length)return end();
     st.turn=1-p;render();if(st.turn===1)setTimeout(ai,700);
@@ -2334,7 +2351,7 @@ GAME_ENGINES.prefa=function(){
   }
   function finishTrick(){
     const w=trickWinner(st.plays,st.trump);st.tricks[w]++;st.trickNo++;
-    log(`Μπάζα ${st.trickNo}: <b>${w===0?'Εσύ':'AI '+w}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    log(`Μπάζα ${st.trickNo}: <b>${w===0?'Εσύ':'AI '+w}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);SFX.grab();
     st.plays=[];st.leader=w;st.turn=w;
     if(st.trickNo>=10||st.hands[0].length===0)return endHand();
     render();maybe();
@@ -2451,7 +2468,7 @@ GAME_ENGINES.bridge=function(){
   }
   function finishTrick(){
     const w=trickWinner(st.plays,st.trump);st.tricks[w]++;st.trickNo++;
-    log(`Λεβέ ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    log(`Λεβέ ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);SFX.grab();
     st.plays=[];st.leader=w;st.turn=w;
     if(st.trickNo>=13)return endHand();
     render();maybe();
@@ -2539,7 +2556,7 @@ GAME_ENGINES.skambili=function(){
   function finishTrick(){
     const w=trickWinner(st.plays,null);st.trickNo++;
     const pts=st.plays.reduce((a,x)=>a+pv(x.c),0);st.points[w]+=pts;
-    log(`Μπάζα ${st.trickNo}: <b>${NM[w]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    log(`Μπάζα ${st.trickNo}: <b>${NM[w]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);SFX.grab();
     st.plays=[];st.leader=w;st.turn=w;
     if(st.trickNo>=8){st.points[w]+=10;log(NM[w]+' +10 (τελευταία μπάζα)');return endGame();}
     render();maybe();
@@ -2624,7 +2641,7 @@ GAME_ENGINES.bourlot=function(){
   function finishTrick(){
     const w=bWinner(st.plays);st.trickNo++;
     const pts=st.plays.reduce((a,x)=>a+cardPts(x.c),0);st.team[teamOf(w)]+=pts;
-    log(`Μπάζα ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);
+    log(`Μπάζα ${st.trickNo}: <b>${SEATNM[w].split(' ')[0]}</b> +${pts}π (${st.plays.map(x=>x.c.r+x.c.s).join(' ')})`);SFX.grab();
     st.plays=[];st.leader=w;st.turn=w;
     if(st.trickNo>=8){st.team[teamOf(w)]+=10;log(SEATNM[w].split(' ')[0]+' +10 (τελευταία μπάζα)');return endHand();}
     render();maybe();
@@ -2890,8 +2907,8 @@ GAME_ENGINES.pastra=function(){
     if(cap){const wasCards=st.table.length;const got=cap.sort((a,b)=>b-a).map(i=>st.table.splice(i,1)[0]);
       st.piles[p].push(...got,card);st.last=p;let sw=false;
       if(st.table.length===0&&wasCards>0){st.pastres[p]++;st.scores[p]+=1;sw=true;}
-      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1}${sw?' <b>ΠΑΣΤΡΑ! +1</b>':''}`);
-    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);}
+      log(`<b>${who}</b> ${card.r}${card.s} → μάζεμα ${got.length+1}${sw?' <b>ΠΑΣΤΡΑ! +1</b>':''}`);SFX.grab();
+    } else {st.table.push(card);log(`<b>${who}</b> έριξε ${card.r}${card.s}.`);if(p!==0)SFX.card();}
     if(st.hands[0].length===0&&st.hands[1].length===0&&st.deck.length)deal();
     if(st.hands[0].length===0&&st.hands[1].length===0&&!st.deck.length)return end();
     st.turn=1-p;render();if(st.turn===1)setTimeout(ai,700);
@@ -3026,8 +3043,8 @@ GAME_ENGINES.haligali=function(){
   window._hgSpeed=(v)=>{HG_SPEED=v;THEME.hgSpeed=v;saveTheme();render();};
   function attemptRing(p){
     if(st.over||st.resolved)return;st.resolved=true;st.token++;if(st._t)clearTimeout(st._t);
-    const valid=cond();
-    if(valid){let all=[];for(let q=0;q<4;q++){all.push(...st.up[q]);st.up[q]=[];}shuffle(all);st.down[p].unshift(...all);log('🔔 '+NM[p]+' χτύπησε ΣΩΣΤΑ — μάζεψε '+all.length+' κάρτες!');}
+    const valid=cond();SFX.bell();
+    if(valid){let all=[];for(let q=0;q<4;q++){all.push(...st.up[q]);st.up[q]=[];}shuffle(all);st.down[p].unshift(...all);log('🔔 '+NM[p]+' χτύπησε ΣΩΣΤΑ — μάζεψε '+all.length+' κάρτες!');setTimeout(()=>SFX.grab(),150);}
     else{log('🔔 '+NM[p]+' χτύπησε ΛΑΘΟΣ — δίνει από μία κάρτα!');for(let q=0;q<4;q++)if(q!==p&&alive(q)&&st.down[p].length>0)st.down[q].unshift(st.down[p].pop());}
     st.canRing=false;checkOuts();if(activeCount()<=1)return end();render();st._t=setTimeout(flip,750);
   }
@@ -3152,7 +3169,7 @@ const THEME_KEY='trapoula360_theme';
 const BACKS=[['','Κόκκινο'],['back-blue','Μπλε'],['back-green','Πράσινο'],['back-gold','Χρυσό'],['back-purple','Μωβ'],['back-plaid','Καρό']];
 const FELTS=[['','Μπορντό'],['felt-blue','Μπλε νύχτα'],['felt-green','Πράσινο'],['felt-charcoal','Ανθρακί'],['felt-purple','Μωβ']];
 const ACCENTS=[['','Κόκκινο'],['accent-gold','Χρυσό'],['accent-cyan','Κυανό'],['accent-purple','Μωβ']];
-let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1};
+let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true};
 function loadTheme(){try{THEME=Object.assign(THEME,JSON.parse(localStorage.getItem(THEME_KEY)||'{}'));}catch(e){}applyTheme();}
 function applyTheme(){
   document.body.className='';
@@ -3185,6 +3202,8 @@ function openSettings(keep){
     <p class="sub" style="margin-top:4px">Ισχύει για όλα τα παιχνίδια. «Δύσκολο» = ο αντίπαλος παίζει σχεδόν βέλτιστα.</p>
     <h4 style="color:var(--gold)">⏱️ Ταχύτητα Χάλι Γκάλι</h4>
     <div class="pill-row">${[[0.65,'Αργό'],[1,'Κανονικό'],[1.6,'Γρήγορο']].map(([v,nm])=>`<button class="btn sm ${(''+THEME.hgSpeed)===(''+v)?'primary':'ghost'}" onclick="setPref('hgSpeed',${v})">${nm}</button>`).join('')}</div>
+    <h4 style="color:var(--gold)">🔊 Ήχοι παιχνιδιού</h4>
+    <div class="pill-row">${[[true,'🔊 Ναι'],[false,'🔇 Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.sound!==false)===v?'primary':'ghost'}" onclick="setPref('sound',${v});SFX.resume();SFX.card();">${nm}</button>`).join('')}</div>
     <div class="divider"></div>
     <div id="installRow"></div>
     <p class="sub" style="margin-top:10px">💡 Η εφαρμογή αποθηκεύει την πρόοδό σου τοπικά στη συσκευή σου.</p>
@@ -3212,6 +3231,9 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
 
 /* ---------- INIT ---------- */
 loadTheme();refreshHeader();checkAch();go('home');
+// sound: human card plays (delegated) + resume audio on first gesture
+try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.target&&e.target.closest&&e.target.closest('.pc'))SFX.card();},true);}catch(e){}
+['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>SFX.resume(),{once:true}));
 </script>
 </body>
 </html>
