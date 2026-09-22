@@ -227,6 +227,15 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
 .rs{color:var(--cardred);font-weight:700}
 .gbar{height:7px;background:var(--bg2);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:6px 0 10px}
 .gbar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:999px}
+/* guide table card motion */
+.gtable{position:relative}
+@keyframes gThrow{0%{transform:translateY(160px) rotateY(80deg) rotate(-12deg) scale(.78);opacity:0}55%{opacity:1}100%{transform:translateY(0) rotateY(0) rotate(0) scale(1);opacity:1}}
+@keyframes gCapture{0%{transform:translateY(160px) rotateY(80deg) scale(.78);opacity:0}26%{transform:translateY(0) rotateY(0) scale(1);opacity:1}60%{transform:translateY(0) scale(1);opacity:1}100%{transform:translate(210px,140px) rotate(20deg) scale(.4);opacity:0}}
+.pc.gthrow{animation:gThrow .6s cubic-bezier(.2,.8,.3,1) both}
+.pc.gcap{animation:gCapture 2s ease both}
+.gpile{position:absolute;bottom:10px;right:14px;font-size:30px;opacity:.45;transition:transform .3s;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.gpile.grab{animation:pileGrab 2s ease}
+@keyframes pileGrab{0%,55%{transform:scale(1)}72%{transform:scale(1.6)}100%{transform:scale(1.15)}}
 .gcard-play{position:absolute;top:10px;left:10px;background:var(--redlow);border:1px solid var(--red);color:#ffb3b6;border-radius:999px;font-size:11px;padding:3px 9px;cursor:pointer;z-index:2}
 .gcard-play:hover{background:var(--red);color:#fff}
 </style>
@@ -1074,10 +1083,13 @@ function startAuto(){if(GUIDE.timer)clearInterval(GUIDE.timer);GUIDE.timer=setIn
 function renderGuide(){
   const m=document.getElementById('guideModal');if(!m)return;
   const g=GAMES.find(x=>x.id===GUIDE.id);const steps=STEPS[GUIDE.id]||[{t:'Σύντομα…'}];const s=steps[GUIDE.i];const playing=!!GUIDE.timer;
+  const _T=(s.t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+  const cap=/μαζεμα|ξερη|παστρα|μαζευ|καρε|κερδιζ|καμπανακι|πετα το|κλεισ|ολοκληρων|νικη|μπαζα|λεβε/.test(_T);
   m.innerHTML=`<div class="modal" onclick="event.stopPropagation()" style="max-width:540px">
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0">${g.ic} ${g.name} — Πώς παίζεται</h3><button class="btn ghost sm" onclick="closeGuide()">✕</button></div>
-    <div class="felt" style="margin:12px 0;min-height:185px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden">
-      ${s.c?`<div class="hand" style="justify-content:center">${s.c.map(c=>cardEl(c,'deal')).join('')}</div>`:`<div style="font-size:44px">${g.ic}</div>`}
+    <div class="felt gtable" style="margin:12px 0;min-height:205px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;overflow:hidden">
+      <span class="gpile ${cap&&s.c?'grab':''}">🂠</span>
+      ${s.c?`<div class="hand" style="justify-content:center">${s.c.map(c=>cardEl(c,cap?'gcap':'gthrow')).join('')}</div>`:`<div style="font-size:44px">${g.ic}</div>`}
       <div style="text-align:center;font-size:16px;line-height:1.55;max-width:440px"><b style="color:var(--gold)">Βήμα ${GUIDE.i+1} / ${steps.length}</b><br>${s.t}</div>
     </div>
     <div class="gbar"><i id="gbarFill"></i></div>
@@ -1092,7 +1104,7 @@ function renderGuide(){
       <button class="btn ghost sm" onclick="openVideo('${g.id}')">🎥 Δες βίντεο (YouTube)</button>
     </div>
   </div>`;
-  m.querySelectorAll('.felt .pc.deal').forEach((el,i)=>{el.style.animationDelay=(i*0.14)+'s';});
+  m.querySelectorAll('.felt .pc.gthrow,.felt .pc.gcap').forEach((el,i)=>{el.style.animationDelay=(i*0.16)+'s';});
   const fill=document.getElementById('gbarFill');
   if(fill){if(playing){fill.style.transition='none';fill.style.width='0%';requestAnimationFrame(()=>{fill.style.transition='width '+(STEP_MS/1000)+'s linear';fill.style.width='100%';});}else{fill.style.transition='none';fill.style.width=((GUIDE.i+1)/steps.length*100)+'%';}}
 }
