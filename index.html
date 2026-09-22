@@ -251,6 +251,7 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
     <div class="lvlchip" id="lvlChip" title="Επίπεδο & πόντοι εμπειρίας">
       <span>🎖️</span><span id="lvlName">Αρχάριος</span> · <b id="xpVal">0</b> XP
     </div>
+    <div class="icon-btn" id="musicBtn" title="Μουσική καφενείου (on/off)" onclick="this.style.color=MUSIC.toggle()?'var(--gold)':''">🎵</div>
     <div class="icon-btn" title="Ρυθμίσεις / Θέματα" onclick="openSettings()">⚙️</div>
   </div>
 </header>
@@ -373,19 +374,41 @@ let S=load();
 var AILEVEL=2, HG_SPEED=1;                 // 0=easy 1=normal 2=hard ; HG_SPEED flips-per-sec multiplier
 function aiRnd(){return [0.32,0.15,0.04][AILEVEL]!=null?[0.32,0.15,0.04][AILEVEL]:0.04;}  // prob of a suboptimal move
 function pokerIters(){return [90,220,460][AILEVEL]||460;}
-/* ---------- SFX (Web Audio, no files) ---------- */
+/* ---------- SFX + Haptics + Music (Web Audio, no files) ---------- */
+let _AC=null;
+function audioCtx(){if(!_AC){try{_AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(_AC&&_AC.state==='suspended'){try{_AC.resume();}catch(e){}}return _AC;}
+function HAP(p){try{if((typeof THEME==='undefined'||THEME.haptics!==false)&&navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 const SFX=(()=>{
-  let ctx=null;
-  function ac(){if(!ctx){try{ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}if(ctx&&ctx.state==='suspended'){try{ctx.resume();}catch(e){}}return ctx;}
+  function ac(){return audioCtx();}
   function on(){return typeof THEME==='undefined'?true:THEME.sound!==false;}
   function tone(freq,dur,type,gain,slideTo){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,t);if(slideTo)try{o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);}catch(e){}g.gain.setValueAtTime(gain||0.14,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.03);}
   function noise(dur,gain,freq){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const n=Math.max(1,Math.floor(c.sampleRate*dur));const buf=c.createBuffer(1,n,c.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const src=c.createBufferSource();src.buffer=buf;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=freq||1400;const g=c.createGain();g.gain.value=gain||0.2;src.connect(f);f.connect(g);g.connect(c.destination);src.start(t);}
   return {
-    card(){noise(0.08,0.16,1700);tone(340,0.05,'square',0.04);},          // flick of a card
-    grab(){noise(0.24,0.15,850);tone(240,0.2,'sine',0.06,110);},          // sweep / collect
-    bell(){tone(1400,0.5,'sine',0.25,880);tone(2100,0.35,'sine',0.1);},   // ding
-    win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.13),i*95));},
+    card(){noise(0.08,0.16,1700);tone(340,0.05,'square',0.04);HAP(12);},          // flick of a card
+    grab(){noise(0.24,0.15,850);tone(240,0.2,'sine',0.06,110);HAP(22);},          // sweep / collect
+    bell(){tone(1400,0.5,'sine',0.25,880);tone(2100,0.35,'sine',0.1);HAP([30,20,30]);},   // ding
+    win(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.13),i*95));HAP([25,45,25,45]);},
     resume(){ac();}
+  };
+})();
+/* Γεννητική μουσική «καφενείου» (soft taverna arpeggio, A minor) */
+const MUSIC=(()=>{
+  let playing=false,master=null,timer=null,step=0;
+  const prog=[[45,[57,60,64]],[41,[57,60,65]],[43,[55,59,62]],[45,[57,60,64]]]; // Am F G Am
+  function mtof(m){return 440*Math.pow(2,(m-69)/12);}
+  function ensure(){const c=audioCtx();if(!c)return null;if(!master){master=c.createGain();master.gain.value=(THEME.musicVol==null?0.35:THEME.musicVol)*0.5;master.connect(c.destination);}return c;}
+  function pluck(c,freq,t,dur,gain){const o=c.createOscillator(),g=c.createGain(),f=c.createBiquadFilter();o.type='triangle';o.frequency.value=freq;f.type='lowpass';f.frequency.value=2400;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(gain,t+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.05);}
+  function tick(){const c=ensure();if(!c||!playing)return;const t=c.currentTime+0.05;const ch=prog[step%prog.length];
+    pluck(c,mtof(ch[0]),t,1.7,0.20);
+    ch[1].forEach((n,i)=>pluck(c,mtof(n),t+0.2+i*0.18,1.2,0.11));
+    pluck(c,mtof(ch[1][2]+12),t+1.0,0.7,0.06);step++;}
+  return {
+    start(){const c=ensure();if(!c)return false;playing=true;THEME.music=true;if(typeof saveTheme==='function')saveTheme();step=0;tick();if(timer)clearInterval(timer);timer=setInterval(tick,2100);return true;},
+    stop(){playing=false;THEME.music=false;if(typeof saveTheme==='function')saveTheme();if(timer)clearInterval(timer);timer=null;},
+    toggle(){playing?this.stop():this.start();return playing;},
+    isOn(){return playing;},
+    rearm(){if(playing){if(timer)clearInterval(timer);timer=setInterval(tick,2100);}},
+    vol(v){THEME.musicVol=v;if(typeof saveTheme==='function')saveTheme();if(master)master.gain.value=v*0.5;}
   };
 })();
 function load(){try{return Object.assign({},DEFAULT,JSON.parse(localStorage.getItem(LS)||'{}'))}catch(e){return {...DEFAULT}}}
@@ -1373,7 +1396,7 @@ function renderPlayList(){
       <div class="meta"><span class="tag red">▶ Παίξε vs AI</span></div>
     </div>`).join('');
 }
-function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}}
+function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}if(typeof MUSIC!=='undefined'&&MUSIC.isOn())MUSIC.rearm();}
 function startGame(id){
   const old=window._activeGame;if(old){old.over=true;try{old.cleanup&&old.cleanup();}catch(e){}}
   clearAllTimers();                       // kill stale timers so «Ξανά» never clobbers the fresh game
@@ -3169,7 +3192,7 @@ const THEME_KEY='trapoula360_theme';
 const BACKS=[['','Κόκκινο'],['back-blue','Μπλε'],['back-green','Πράσινο'],['back-gold','Χρυσό'],['back-purple','Μωβ'],['back-plaid','Καρό']];
 const FELTS=[['','Μπορντό'],['felt-blue','Μπλε νύχτα'],['felt-green','Πράσινο'],['felt-charcoal','Ανθρακί'],['felt-purple','Μωβ']];
 const ACCENTS=[['','Κόκκινο'],['accent-gold','Χρυσό'],['accent-cyan','Κυανό'],['accent-purple','Μωβ']];
-let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true};
+let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true,haptics:true,music:false,musicVol:0.35};
 function loadTheme(){try{THEME=Object.assign(THEME,JSON.parse(localStorage.getItem(THEME_KEY)||'{}'));}catch(e){}applyTheme();}
 function applyTheme(){
   document.body.className='';
@@ -3204,6 +3227,11 @@ function openSettings(keep){
     <div class="pill-row">${[[0.65,'Αργό'],[1,'Κανονικό'],[1.6,'Γρήγορο']].map(([v,nm])=>`<button class="btn sm ${(''+THEME.hgSpeed)===(''+v)?'primary':'ghost'}" onclick="setPref('hgSpeed',${v})">${nm}</button>`).join('')}</div>
     <h4 style="color:var(--gold)">🔊 Ήχοι παιχνιδιού</h4>
     <div class="pill-row">${[[true,'🔊 Ναι'],[false,'🔇 Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.sound!==false)===v?'primary':'ghost'}" onclick="setPref('sound',${v});SFX.resume();SFX.card();">${nm}</button>`).join('')}</div>
+    <h4 style="color:var(--gold)">📳 Δόνηση (κινητό)</h4>
+    <div class="pill-row">${[[true,'Ναι'],[false,'Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.haptics!==false)===v?'primary':'ghost'}" onclick="setPref('haptics',${v});HAP(25);">${nm}</button>`).join('')}</div>
+    <h4 style="color:var(--gold)">🎵 Μουσική καφενείου</h4>
+    <div class="pill-row"><button class="btn sm ${MUSIC.isOn()?'primary':'ghost'}" onclick="MUSIC.toggle();document.getElementById('musicBtn').style.color=MUSIC.isOn()?'var(--gold)':'';openSettings(true);">${MUSIC.isOn()?'⏸ Παύση':'▶ Έναρξη'}</button></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:8px"><span class="sub">🔉 Ένταση</span><input type="range" min="0" max="1" step="0.05" value="${THEME.musicVol==null?0.35:THEME.musicVol}" oninput="MUSIC.vol(+this.value)" style="flex:1"><span>🔊</span></div>
     <div class="divider"></div>
     <div id="installRow"></div>
     <p class="sub" style="margin-top:10px">💡 Η εφαρμογή αποθηκεύει την πρόοδό σου τοπικά στη συσκευή σου.</p>
@@ -3233,7 +3261,7 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
 loadTheme();refreshHeader();checkAch();go('home');
 // sound: human card plays (delegated) + resume audio on first gesture
 try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.target&&e.target.closest&&e.target.closest('.pc'))SFX.card();},true);}catch(e){}
-['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>SFX.resume(),{once:true}));
+['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.resume();if(THEME.music){MUSIC.start();const mb=document.getElementById('musicBtn');if(mb)mb.style.color='var(--gold)';}},{once:true}));
 </script>
 </body>
 </html>
