@@ -118,6 +118,13 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
   background:radial-gradient(circle 55px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.6), rgba(255,255,255,0) 62%)}
 .pc:hover::before{opacity:1}
 .pc.back::before{background:radial-gradient(circle 55px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.45), rgba(255,255,255,0) 62%)}
+/* ειδικά φύλλα (Α/J/Q/K/τζόκερ): εντονότερη μεταλλική-χρυσή λάμψη */
+.pc.special{border-color:#d9b44a}
+.pc.special::before{background:
+  radial-gradient(circle 62px at var(--gx,50%) var(--gy,50%), rgba(255,244,190,.9), rgba(255,214,110,.35) 42%, rgba(255,255,255,0) 72%),
+  linear-gradient(115deg, rgba(255,255,255,0) 42%, rgba(255,240,190,.35) 50%, rgba(255,255,255,0) 58%)}
+.pc.special:hover::before{opacity:1}
+.pc.special.back{border-color:#8a1a1e}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
@@ -491,9 +498,10 @@ function fx(kind){CARD_FX=kind||'';}
 function cardEl(c,cls){
   const fxc=CARD_FX?(' '+CARD_FX):'';
   if(!c) return `<div class="pc back ${cls||''}${fxc}"></div>`;
-  if(c.joker) return `<div class="pc ${cls||''}${fxc}" style="color:#8b3fd6"><div class="r">★<br>JK</div><div class="mid">🃟</div><div class="s">★</div></div>`;
+  if(c.joker) return `<div class="pc special ${cls||''}${fxc}" style="color:#8b3fd6"><div class="r">★<br>JK</div><div class="mid">🃟</div><div class="s">★</div></div>`;
   const red=SUIT_RED(c.s)?'red':'';
-  return `<div class="pc ${red} ${cls||''}${fxc}"><div class="r">${c.r}<br>${c.s}</div><div class="mid">${c.s}</div><div class="s">${c.s}</div></div>`;
+  const sp=(c.r==='A'||c.r==='J'||c.r==='Q'||c.r==='K')?' special':'';
+  return `<div class="pc ${red}${sp} ${cls||''}${fxc}"><div class="r">${c.r}<br>${c.s}</div><div class="mid">${c.s}</div><div class="s">${c.s}</div></div>`;
 }
 function handHtml(cards,cls,opts){return cards.map((c,i)=>cardEl(c,(cls||'')+(opts&&opts.clk?' clk':''))).join('');}
 
@@ -3323,7 +3331,7 @@ try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.tar
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.resume();if(THEME.music){MUSIC.start();const mb=document.getElementById('musicBtn');if(mb)mb.style.color='var(--gold)';}if(THEME.ambience)AMBIENCE.start();},{once:true}));
 // realistic card tilt: γέρνει το φύλλο ανάλογα με τη θέση του ποντικιού (σαν να το κρατάς)
 let _tiltEl=null,_lastHover=0;
-function _clearTilt(el){if(el){el.style.transform='';el.style.zIndex='';el.style.transition='';el.style.removeProperty('--gx');el.style.removeProperty('--gy');}}
+function _clearTilt(el){if(el){el.style.transform='';el.style.zIndex='';el.style.transition='';el.style.boxShadow='';el.style.removeProperty('--gx');el.style.removeProperty('--gy');}}
 document.addEventListener('pointermove',(e)=>{
   if(e.pointerType&&e.pointerType!=='mouse'){_clearTilt(_tiltEl);_tiltEl=null;return;}
   const el=e.target&&e.target.closest?e.target.closest('.pc'):null;
@@ -3334,6 +3342,8 @@ document.addEventListener('pointermove',(e)=>{
   el.style.setProperty('--gx',((px+0.5)*100).toFixed(1)+'%');
   el.style.setProperty('--gy',((py+0.5)*100).toFixed(1)+'%');
   el.style.transform=`perspective(520px) rotateX(${(-py*17).toFixed(1)}deg) rotateY(${(px*17).toFixed(1)}deg) translateY(-6px) scale(1.05)`;
+  const sx=(-px*30).toFixed(0),sy=(22-py*12).toFixed(0);   // σκιά στην τσόχα, μετατοπίζεται αντίθετα από την κλίση
+  el.style.boxShadow=`${sx}px ${sy}px 30px rgba(0,0,0,.55), 0 6px 10px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.9)`;
   el.style.zIndex='6';
 },{passive:true});
 document.addEventListener('pointerleave',()=>{_clearTilt(_tiltEl);_tiltEl=null;},true);
