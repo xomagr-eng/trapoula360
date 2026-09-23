@@ -3316,6 +3316,20 @@ loadTheme();refreshHeader();checkAch();go('home');
 // sound: human card plays (delegated) + resume audio on first gesture
 try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.target&&e.target.closest&&e.target.closest('.pc'))SFX.card();},true);}catch(e){}
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.resume();if(THEME.music){MUSIC.start();const mb=document.getElementById('musicBtn');if(mb)mb.style.color='var(--gold)';}if(THEME.ambience)AMBIENCE.start();},{once:true}));
+// realistic card tilt: γέρνει το φύλλο ανάλογα με τη θέση του ποντικιού (σαν να το κρατάς)
+let _tiltEl=null;
+function _clearTilt(el){if(el){el.style.transform='';el.style.zIndex='';el.style.transition='';}}
+document.addEventListener('pointermove',(e)=>{
+  if(e.pointerType&&e.pointerType!=='mouse'){_clearTilt(_tiltEl);_tiltEl=null;return;}
+  const el=e.target&&e.target.closest?e.target.closest('.pc'):null;
+  if(el!==_tiltEl){_clearTilt(_tiltEl);_tiltEl=el;if(el)el.style.transition='transform .05s linear';}
+  if(!el)return;
+  const r=el.getBoundingClientRect();if(!r.width)return;
+  const px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
+  el.style.transform=`perspective(520px) rotateX(${(-py*17).toFixed(1)}deg) rotateY(${(px*17).toFixed(1)}deg) translateY(-6px) scale(1.05)`;
+  el.style.zIndex='6';
+},{passive:true});
+document.addEventListener('pointerleave',()=>{_clearTilt(_tiltEl);_tiltEl=null;},true);
 </script>
 </body>
 </html>
