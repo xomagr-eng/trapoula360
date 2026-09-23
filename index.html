@@ -114,6 +114,10 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
 .pc.lg{--w:82px}
 .pc.clk{cursor:pointer;transition:transform .12s}
 .pc.clk:hover{transform:perspective(520px) translateY(-9px) rotateX(9deg) scale(1.04);box-shadow:0 18px 26px rgba(0,0,0,.5), 0 5px 9px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.9);z-index:5}
+.pc::before{content:'';position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .2s;z-index:2;
+  background:radial-gradient(circle 55px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.6), rgba(255,255,255,0) 62%)}
+.pc:hover::before{opacity:1}
+.pc.back::before{background:radial-gradient(circle 55px at var(--gx,50%) var(--gy,50%), rgba(255,255,255,.45), rgba(255,255,255,0) 62%)}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
@@ -396,6 +400,7 @@ const SFX=(()=>{
   function tone(freq,dur,type,gain,slideTo){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const o=c.createOscillator(),g=c.createGain();o.type=type||'sine';o.frequency.setValueAtTime(freq,t);if(slideTo)try{o.frequency.exponentialRampToValueAtTime(slideTo,t+dur);}catch(e){}g.gain.setValueAtTime(gain||0.14,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+dur+0.03);}
   function noise(dur,gain,freq){if(!on())return;const c=ac();if(!c)return;const t=c.currentTime;const n=Math.max(1,Math.floor(c.sampleRate*dur));const buf=c.createBuffer(1,n,c.sampleRate);const d=buf.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n);const src=c.createBufferSource();src.buffer=buf;const f=c.createBiquadFilter();f.type='bandpass';f.frequency.value=freq||1400;const g=c.createGain();g.gain.value=gain||0.2;src.connect(f);f.connect(g);g.connect(c.destination);src.start(t);}
   return {
+    hover(){noise(0.03,0.045,2600);},                                            // απαλό «άγγιγμα» φύλλου
     card(){noise(0.08,0.16,1700);tone(340,0.05,'square',0.04);HAP(12);},          // flick of a card
     grab(){noise(0.24,0.15,850);tone(240,0.2,'sine',0.06,110);HAP(22);},          // sweep / collect
     bell(){tone(1400,0.5,'sine',0.25,880);tone(2100,0.35,'sine',0.1);HAP([30,20,30]);},   // ding
@@ -3317,15 +3322,17 @@ loadTheme();refreshHeader();checkAch();go('home');
 try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.target&&e.target.closest&&e.target.closest('.pc'))SFX.card();},true);}catch(e){}
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.resume();if(THEME.music){MUSIC.start();const mb=document.getElementById('musicBtn');if(mb)mb.style.color='var(--gold)';}if(THEME.ambience)AMBIENCE.start();},{once:true}));
 // realistic card tilt: γέρνει το φύλλο ανάλογα με τη θέση του ποντικιού (σαν να το κρατάς)
-let _tiltEl=null;
-function _clearTilt(el){if(el){el.style.transform='';el.style.zIndex='';el.style.transition='';}}
+let _tiltEl=null,_lastHover=0;
+function _clearTilt(el){if(el){el.style.transform='';el.style.zIndex='';el.style.transition='';el.style.removeProperty('--gx');el.style.removeProperty('--gy');}}
 document.addEventListener('pointermove',(e)=>{
   if(e.pointerType&&e.pointerType!=='mouse'){_clearTilt(_tiltEl);_tiltEl=null;return;}
   const el=e.target&&e.target.closest?e.target.closest('.pc'):null;
-  if(el!==_tiltEl){_clearTilt(_tiltEl);_tiltEl=el;if(el)el.style.transition='transform .05s linear';}
+  if(el!==_tiltEl){_clearTilt(_tiltEl);_tiltEl=el;if(el){el.style.transition='transform .05s linear';const now=performance.now();if(now-_lastHover>90){SFX.hover();_lastHover=now;}}}
   if(!el)return;
   const r=el.getBoundingClientRect();if(!r.width)return;
   const px=(e.clientX-r.left)/r.width-0.5, py=(e.clientY-r.top)/r.height-0.5;
+  el.style.setProperty('--gx',((px+0.5)*100).toFixed(1)+'%');
+  el.style.setProperty('--gy',((py+0.5)*100).toFixed(1)+'%');
   el.style.transform=`perspective(520px) rotateX(${(-py*17).toFixed(1)}deg) rotateY(${(px*17).toFixed(1)}deg) translateY(-6px) scale(1.05)`;
   el.style.zIndex='6';
 },{passive:true});
