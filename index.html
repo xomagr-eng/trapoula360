@@ -125,6 +125,14 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
   linear-gradient(115deg, rgba(255,255,255,0) 42%, rgba(255,240,190,.35) 50%, rgba(255,255,255,0) 58%)}
 .pc.special:hover::before{opacity:1}
 .pc.special.back{border-color:#8a1a1e}
+/* διακριτική «ανάσα» στα φύλλα σε αναμονή (scale standalone → δεν πειράζει το tilt του transform) */
+@keyframes cardBreath{0%,100%{scale:1}50%{scale:1.02}}
+.hand .pc{animation:cardBreath 4.2s ease-in-out infinite}
+.hand .pc:nth-child(2n){animation-delay:-1.4s}
+.hand .pc:nth-child(3n){animation-delay:-2.7s}
+.hand .pc:nth-child(5n){animation-delay:-3.6s}
+.pc:hover{animation-play-state:paused}
+@media (prefers-reduced-motion:reduce){.hand .pc{animation:none}}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
