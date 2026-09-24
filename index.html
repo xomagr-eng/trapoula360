@@ -154,6 +154,12 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
 .pc.special:nth-child(2n)::after{animation-delay:-2.2s}
 .pc.special:nth-child(3n)::after{animation-delay:-3.9s}
 @media (prefers-reduced-motion:reduce){.pc.special::after{animation:none}}
+/* Προπονητής (coach/tutorial) */
+.coach-panel{background:linear-gradient(135deg,#20262f,#141821);border:1px solid var(--gold);border-radius:12px;padding:10px 14px;margin-top:10px;font-size:14px;line-height:1.55;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.coach-panel b{color:var(--gold)}
+@keyframes coachPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,178,58,.7)}50%{box-shadow:0 0 0 9px rgba(232,178,58,0)}}
+.pc.coach-hi{outline:3px solid var(--gold)!important;outline-offset:2px;animation:coachPulse 1.1s ease-in-out infinite;z-index:7}
+#coachBtn.on{background:linear-gradient(135deg,var(--gold),#b98718);border-color:var(--gold);color:#241a02}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
@@ -371,7 +377,11 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
 
   <!-- ========== TABLE (active game) ========== -->
   <section id="view-table" class="hidden">
-    <button class="btn ghost sm" onclick="quitGame()">← Έξοδος από το τραπέζι</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn ghost sm" onclick="quitGame()">← Έξοδος</button>
+      <button class="btn sm" id="coachBtn" onclick="toggleCoach()">🎓 Προπονητής: OFF</button>
+    </div>
+    <div id="coachPanel" class="coach-panel hidden"></div>
     <div id="tableHost" style="margin-top:12px"></div>
   </section>
 
@@ -1486,15 +1496,39 @@ function renderPlayList(){
       <div class="meta"><span class="tag red">▶ Παίξε vs AI</span></div>
     </div>`).join('');
 }
-function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}if(typeof MUSIC!=='undefined'&&MUSIC.isOn())MUSIC.rearm();if(typeof AMBIENCE!=='undefined'&&AMBIENCE.isOn())AMBIENCE.rearm();}
+function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}if(typeof MUSIC!=='undefined'&&MUSIC.isOn())MUSIC.rearm();if(typeof AMBIENCE!=='undefined'&&AMBIENCE.isOn())AMBIENCE.rearm();if(typeof COACH!=='undefined'&&COACH)ensureCoach();}
 function startGame(id){
   const old=window._activeGame;if(old){old.over=true;try{old.cleanup&&old.cleanup();}catch(e){}}
   clearAllTimers();                       // kill stale timers so «Ξανά» never clobbers the fresh game
   curGameId=id;go('table');
   try{GAME_ENGINES[id]();}
   catch(e){host().innerHTML='<div class="panel" style="text-align:center;margin-top:20px"><h3>⚠️ Ουπς</h3><p class="sub">Κάτι πήγε στραβά. Δοκίμασε ξανά.</p><button class="btn primary" onclick="startGame(\''+id+'\')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>';}
+  const cp=document.getElementById('coachPanel');if(cp)cp.classList.toggle('hidden',!COACH);
+  if(COACH){ensureCoach();coachTick();}
 }
 function quitGame(){const old=window._activeGame;if(old){old.over=true;try{old.cleanup&&old.cleanup();}catch(e){}}clearAllTimers();window._activeGame=null;go('play');}
+/* ---------- ΠΡΟΠΟΝΗΤΗΣ / TUTORIAL ---------- */
+var COACH=false,_coachTimer=null;
+const FALLTIP={
+  blofa:'Μπλόφαρε όταν έχεις «άλλοθι» (πολλά κατεβασμένα). Φώναξε «Μπλόφα!» όταν κρατάς πολλά φύλλα της αξίας που μόλις δηλώθηκε (αδύνατο να τα έχει κι αυτός).',
+  gaidaros:'Κυνήγα την τετράδα που ήδη έχεις τα περισσότερα· δίνε πάντα το πιο άχρηστο/μονό φύλλο.',
+  moutzouris:'Πέτα ζευγάρια αμέσως. Στο τράβηγμα δεν υπάρχει «σωστή» επιλογή — καθαρή τύχη & ψυχολογία.',
+  haligali:'Μέτρα σύνολο ΑΝΑ φρούτο· χτύπα το καμπανάκι μόνο στο ΑΚΡΙΒΩΣ 5. Χαμήλωσε ταχύτητα αν δυσκολεύεσαι.'
+};
+function toggleCoach(){COACH=!COACH;const b=document.getElementById('coachBtn');if(b){b.textContent='🎓 Προπονητής: '+(COACH?'ON':'OFF');b.classList.toggle('on',COACH);}const p=document.getElementById('coachPanel');if(p)p.classList.toggle('hidden',!COACH);if(COACH){ensureCoach();coachTick();}else{if(_coachTimer)clearInterval(_coachTimer);_coachTimer=null;document.querySelectorAll('.pc.coach-hi').forEach(e=>e.classList.remove('coach-hi'));}}
+function ensureCoach(){if(!COACH)return;if(_coachTimer)clearInterval(_coachTimer);_coachTimer=setInterval(coachTick,650);}
+function coachTick(){
+  if(!COACH)return;const p=document.getElementById('coachPanel');if(!p)return;
+  if(document.getElementById('view-table').classList.contains('hidden'))return;
+  document.querySelectorAll('.pc.coach-hi').forEach(e=>e.classList.remove('coach-hi'));
+  const st=window._activeGame;
+  if(!st){p.innerHTML='<b>🎓 Προπονητής:</b> Ξεκίνα ένα παιχνίδι.';return;}
+  if(st.over){p.innerHTML='<b>🎓 Προπονητής:</b> Η παρτίδα τελείωσε — πάτησε «Ξανά».';return;}
+  if(st.hint){let h;try{h=st.hint();}catch(e){h=null;}
+    if(h&&h.msg){p.innerHTML='<b>🎓 Προπονητής:</b> '+h.msg;if(h.sel){const t=document.querySelector(h.sel);if(t)t.classList.add('coach-hi');}return;}
+    p.innerHTML='<b>🎓 Προπονητής:</b> <span class="sub">Περίμενε τη σειρά σου…</span>';return;}
+  const tip=FALLTIP[curGameId];p.innerHTML='<b>🎓 Προπονητής:</b> '+(tip||'<span class="sub">Παίξε φυσιολογικά — δες τον Δάσκαλο για στρατηγική.</span>');
+}
 function recordGame(id,won){
   S.played++;if(won)S.wins_total++;
   S.games[id]=(S.games[id]||0)+1;if(won)S.wins[id]=(S.wins[id]||0)+1;
@@ -1605,6 +1639,11 @@ GAME_ENGINES.xeri=function(){
     host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:14px"><button class="btn primary" onclick="startGame('xeri')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);
     recordGame('xeri',won);
   }
+  st.hint=()=>{if(st.turn!==0||st.over)return null;const hand=st.hands[0],top=st.table[st.table.length-1];let idx=-1,why='';
+    if(top){const m=hand.findIndex(c=>c.r===top.r&&c.r!=='J');if(m>=0){idx=m;why='ταιριάζει το '+top.r+top.s+' → μάζεμα'+(st.table.length===1?' — <b>ΞΕΡΗ! +10</b>':'');}}
+    if(idx<0){const j=hand.findIndex(c=>c.r==='J');if(j>=0&&(st.table.reduce((a,c)=>a+scoreCard(c),0)>=1||st.table.length>=3)){idx=j;why='ο Βαλές μαζεύει ΟΛΟ το τραπέζι ('+st.table.length+' φύλλα)';}}
+    if(idx<0){let b=0,bv=1e9;hand.forEach((c,i)=>{const v=scoreCard(c)*10+(c.r==='J'?60:0);if(v<bv){bv=v;b=i;}});idx=b;why='δεν υπάρχει μάζεμα — ρίξε χαμηλό φύλλο (κράτα Βαλέδες & πόντους)';}
+    const c=hand[idx];return {msg:'Παίξε <b>'+c.r+c.s+'</b>: '+why+'.',sel:'#tableHost .seat:last-of-type .pc:nth-child('+(idx+1)+')'};};
   window._activeGame=st;render();log('Καλή επιτυχία! Ταίριαξε αξίες για μάζεμα· ο Βαλές μαζεύει τα πάντα.');
 };
 
@@ -1796,6 +1835,10 @@ function pokerEngine(nPlayers){
   }
   window._pk=(a)=>playerAction(a);
   window._pkRaise=()=>{const rr=document.getElementById('raiseR');playerAction('raise',+rr.value);};
+  st.hint=()=>{if(st.over_hand||st.toAct!==0||st.folded[0])return null;const toCall=st.curBet-st.bets[0];const eq=equityHoldem(st.cards[0],st.board,Math.max(1,activePlayers().length-1),200);const pct=Math.round(eq*100);const po=toCall>0?toCall/(st.pot+toCall):0;let rec;
+    if(toCall===0){rec=eq>0.58?'<b>Πόνταρε (Bet)</b> για value.':(eq>0.4?'Check ή μικρό bet.':'<b>Check</b> — αδύναμο, μη ρισκάρεις.');}
+    else{if(eq>0.72)rec='<b>Raise</b> — πολύ δυνατό χέρι.';else if(eq>po+0.06)rec='<b>Call</b> (ισχύς '+pct+'% > pot odds '+Math.round(po*100)+'%).';else rec='<b>Fold</b> (ισχύς '+pct+'% < pot odds '+Math.round(po*100)+'%).';}
+    return {msg:'«'+bestHand([...st.cards[0],...st.board]).name+'», ~'+pct+'% πιθανότητα νίκης. '+rec};};
   window._activeGame=st;
   newHand();
 }
@@ -1923,6 +1966,12 @@ function pokaEngine(){
     const lg=document.getElementById('pokaLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
   window._pokaBet=playerBet;window._pokaDraw=doDraw;window._pokaNext=()=>{st.dealer=(st.dealer+1)%3;st._ev=null;newHand();};
+  st.hint=()=>{if(st.phase==='bet1'){const e=bestHand(st.hands[0]);return {msg:e.cat>=3?'<b>Raise</b> — δυνατό ('+e.name+').':e.cat>=1?'<b>Call/Check</b> — έχεις '+e.name+'.':'Σκέψου <b>Fold</b> αν ποντάρουν (μόνο ψηλό φύλλο).'};}
+    if(st.phase==='draw'){const h=st.hands[0],cnt={};h.forEach(c=>cnt[c.r]=(cnt[c.r]||0)+1);const bs={};h.forEach(c=>(bs[c.s]=bs[c.s]||[]).push(c));const f4=Object.values(bs).find(a=>a.length===4);
+      if(h.filter(c=>cnt[c.r]>=2).length>=2)return {msg:'Κράτα το ζευγάρι/τριάδα και άλλαξε τα υπόλοιπα (κλικ στα φύλλα).'};
+      if(f4)return {msg:'Έχεις 4 ίδιου χρώματος — κράτα τα & άλλαξε 1 (κυνήγα χρώμα).'};
+      return {msg:'Μόνο ψηλό φύλλο — κράτα τον ψηλότερο & άλλαξε 4.'};}
+    return null;};
   window._activeGame=st;newHand();
 }
 
@@ -2001,6 +2050,10 @@ GAME_ENGINES.koumkan=function(){
     const c=hands[1].splice(bi,1)[0];discard.push(c);log('AI πέταξε '+(c.joker?'★':c.r+c.s)+'.');turn=0;drawn=false;render();
   }
   function finish(won){render();host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':'Ο αντίπαλος κέρδισε.'}</h3><button class="btn primary" onclick="startGame('koumkan')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame('koumkan',won);}
+  st.hint=()=>{if(turn!==0||st.over)return null;
+    if(!drawn){const top=discard[discard.length-1];if(top){const b=bestMeldScore(hands[0]);hands[0].push(top);const better=bestMeldScore(hands[0])>b||connKK(top,hands[0])>=4;hands[0].pop();if(better)return {msg:'Τράβα από τα <b>καμένα</b> ('+(top.joker?'★':top.r+top.s)+') — βελτιώνει συνδυασμό.'};}return {msg:'Τράβα από την <b>κλειστή στοίβα</b> (τα καμένα δεν βοηθούν τώρα).'};}
+    let bi=0,bv=1e9;hands[0].forEach((c,i)=>{const test=hands[0].filter((_,j)=>j!==i);const gain=bestMeldScore(hands[0])-bestMeldScore(test);const keep=gain*100+connKK(c,hands[0])*4-RVAL[c.r]*0.2+(c.joker?999:0);if(keep<bv){bv=keep;bi=i;}});
+    const c=hands[0][bi];return {msg:'Πέτα <b>'+(c.joker?'★':c.r+c.s)+'</b> — το λιγότερο χρήσιμο για τριάδες/κέντες.'+(isWin(hands[0])?' (ή πάτησε ΚΛΕΙΣΕ!)':'')};};
   window._activeGame=st;log('Στόχος: κάνε όλα τα φύλλα σου τριάδες/κέντες (★=τζόκερ) και κλείσε.');render();
 };
 
@@ -2346,6 +2399,10 @@ function rummyEngine(cfg){
     const c=hands[1].splice(bi,1)[0];discard.push(c);log('AI πέταξε '+(c.joker?'★':c.r+c.s)+'.');turn=0;drawn=false;render();
   }
   function finish(won){render();host().insertAdjacentHTML('beforeend',`<div style="text-align:center;margin-top:12px"><h3 style="color:${won?'var(--gold)':'var(--red2)'}">${won?'🏆 Κέρδισες!':'Ο αντίπαλος κέρδισε.'}</h3><button class="btn primary" onclick="startGame('${cfg.id}')">🔄 Ξανά</button> <button class="btn ghost" onclick="quitGame()">Έξοδος</button></div>`);recordGame(cfg.id,won);}
+  st.hint=()=>{if(turn!==0||st.over)return null;
+    if(!drawn){const top=discard[discard.length-1];if(top){const b=meldScore(hands[0]);hands[0].push(top);const better=meldScore(hands[0])>b||conn(top,hands[0])>=4;hands[0].pop();if(better)return {msg:'Τράβα από τα <b>καμένα</b> ('+(top.joker?'★':top.r+top.s)+') — βελτιώνει συνδυασμό.'};}return {msg:'Τράβα από την <b>κλειστή στοίβα</b>.'};}
+    let bi=0,bv=1e9;hands[0].forEach((c,i)=>{const test=hands[0].filter((_,j)=>j!==i);const gain=meldScore(hands[0])-meldScore(test);const keep=gain*100+conn(c,hands[0])*4-RVAL[c.r]*0.2+(c.joker?999:0);if(keep<bv){bv=keep;bi=i;}});
+    const c=hands[0][bi];return {msg:'Πέτα <b>'+(c.joker?'★':c.r+c.s)+'</b> — το λιγότερο χρήσιμο για συνδυασμούς.'+(isWin(hands[0])?' (ή πάτησε ΚΛΕΙΣΕ!)':'')};};
   window._activeGame=st;log('Στόχος: κάνε όλα τα φύλλα σου τριάδες/κέντες'+(cfg.jokers?' (★=τζόκερ)':'')+' και κλείσε.');render(true);
 }
 GAME_ENGINES.thanasis=()=>rummyEngine({id:'thanasis',decks:1,jokers:0,handSize:10});
@@ -2417,6 +2474,11 @@ GAME_ENGINES.diloti=function(){
     if(st.turn===0)host().querySelectorAll('.seat:last-of-type .pc').forEach((el,i)=>el.onclick=()=>play(0,i));
     const lg=document.getElementById('dlLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{if(st.turn!==0||st.over)return null;const hand=st.hands[0];let best=-1,bs=-1,bl=0;
+    hand.forEach((c,i)=>{const save=st.table.slice();const cap=capture(c);let sc=-1;if(cap){sc=100+cap.reduce((a,k)=>a+pointVal(st.table[k]),0)*10+cap.length;}st.table=save;if(sc>bs){bs=sc;best=i;bl=cap?cap.length:0;}});
+    if(bs>=0){const c=hand[best];return {msg:'Παίξε <b>'+c.r+c.s+'</b> → μάζεμα '+bl+' φύλλων'+(bl===st.table.length?' (καθαρίζεις το τραπέζι — ΞΕΡΗ!)':'')+'.',sel:'#tableHost .seat:last-of-type .pc:nth-child('+(best+1)+')'};}
+    let lo=0,lv=99;hand.forEach((c,i)=>{const v=numV(c)==null?11:numV(c);if(v<lv){lv=v;lo=i;}});const c=hand[lo];
+    return {msg:'Δεν υπάρχει μάζεμα — ρίξε <b>'+c.r+c.s+'</b> (χαμηλό, χωρίς πόντους).',sel:'#tableHost .seat:last-of-type .pc:nth-child('+(lo+1)+')'};};
   window._activeGame=st;log('Μάζεμα: ίδια αξία ή άθροισμα (π.χ. 6 = 2+4). Καθάρισε το τραπέζι για ΞΕΡΗ (+10).');render(true);
 };
 
@@ -2525,6 +2587,17 @@ GAME_ENGINES.prefa=function(){
       <div class="log" id="prLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
     fx('');const lg=document.getElementById('prLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{
+    if(st.phase==='bid'){const b=bestBid(st.hands[0]);return {msg:b.pass?'Αδύναμο χέρι — καλύτερα <b>Πάσο</b>.':'Δήλωσε ~<b>'+b.lvl+' μπάζες</b>, ατού <b>'+SUITNM[b.suit]+' '+b.suit+'</b> (το δυνατότερό σου χρώμα).'};}
+    if(st.phase==='discard')return {msg:'Κρύψε τα <b>2 πιο χαμηλά/άχρηστα</b> φύλλα (όχι ατού/άσσους).'};
+    if(st.phase==='play'&&st.turn===0){const legal=legalFor(0);let idx,why;
+      if(st.plays.length===0){const c=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];idx=st.hands[0].indexOf(c);why='άνοιξε με δυνατό φύλλο (μακρύ χρώμα)';}
+      else{const winners=legal.filter(c=>trickWinner([...st.plays,{p:0,c}],st.trump)===0);const curW=trickWinner(st.plays,st.trump);const friend=sameSide(0,curW)&&curW!==0;let c;
+        if(friend){c=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='ο συμπαίκτης κερδίζει — ρίξε χαμηλό';}
+        else if(winners.length){c=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='κέρδισε τη μπάζα με το φθηνότερο νικητήριο';}
+        else{c=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='δεν κερδίζεις — ξεφορτώσου χαμηλό';}idx=st.hands[0].indexOf(c);}
+      const cc=st.hands[0][idx];return {msg:'Παίξε <b>'+cc.r+cc.s+'</b> — '+why+'.',sel:'#prHand .pc:nth-child('+(idx+1)+')'};}
+    return null;};
   window._activeGame=st;log('Δήλωσε πόσες μπάζες αναλαμβάνεις & το ατού. Μετά παίξε τις 10 μπάζες.');startBidding();
 };
 
@@ -2641,6 +2714,16 @@ GAME_ENGINES.bridge=function(){
       <div class="log" id="brLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
     fx('');const lg=document.getElementById('brLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{
+    if(st.phase==='choose'){const s=longestSuit(st.declarer);return {msg:'Είσαι εκτελεστής ('+st.combined+' HCP μαζί). Διάλεξε ατού το μακρύτερο χρώμα σου: <b>'+SUITNM[s]+' '+s+'</b> (ή ΧΑ αν είσαι ισορροπημένος).'};}
+    if(st.phase==='play'&&controlledBy0(st.turn)){const p=st.turn;const legal=legalFor(p);let idx,why;
+      if(st.plays.length===0){const c=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];idx=st.hands[p].indexOf(c);why=(p===st.declarer||p===st.dummy)?'τράβα ατού / βγάλε τα σίγουρα winners':'βγες από το μακρύ/δυνατό σου χρώμα';}
+      else{const cw=trickWinner(st.plays,st.trump);const friend=side(cw)===side(p)&&cw!==p;const winners=legal.filter(c=>trickWinner([...st.plays,{p,c}],st.trump)===p);let c;
+        if(friend){c=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='η πλευρά σου κερδίζει — ρίξε χαμηλό';}
+        else if(winners.length){c=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='κέρδισε τη λεβέ φθηνά';}
+        else{c=legal.slice().sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='δεν κερδίζεις — ξεφορτώσου χαμηλό';}idx=st.hands[p].indexOf(c);}
+      const cc=st.hands[p][idx];return {msg:'Παίξε <b>'+cc.r+cc.s+'</b>'+(p===st.dummy?' (ντάμι)':'')+' — '+why+'.',sel:'#brSeat'+p+' .pc:nth-child('+(idx+1)+')'};}
+    return null;};
   window._activeGame=st;log('Mini-Bridge: μετρήθηκαν οι HCP. Η δυνατότερη πλευρά παίζει το συμβόλαιο.');setup();
 };
 
@@ -2708,6 +2791,12 @@ GAME_ENGINES.skambili=function(){
     if(st.turn===0&&!st.over){const legal=legalFor(0);host().querySelectorAll('#skHand .pc').forEach((el,i)=>{const c=st.hands[0][i];if(legal.some(x=>x.r===c.r&&x.s===c.s))el.onclick=()=>playCard(0,c);else el.classList.add('dim');});}
     const lg=document.getElementById('skLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{if(st.turn!==0||st.over)return null;const legal=legalFor(0);let idx,why;
+    if(st.plays.length===0){const c=legal.slice().sort((a,b)=>RVAL[b.r]-RVAL[a.r])[0];idx=st.hands[0].indexOf(c);why='άνοιξε με ψηλό φύλλο για να μαζέψεις τη μπάζα';}
+    else{const winners=legal.filter(c=>trickWinner([...st.plays,{p:0,c}],null)===0);const pot=st.plays.reduce((a,x)=>a+pv(x.c),0);let c;
+      if(winners.length&&pot>=4){c=winners.sort((a,b)=>RVAL[a.r]-RVAL[b.r])[0];why='κέρδισε αυτή τη μπάζα ('+pot+'π) με το φθηνότερο νικητήριο';}
+      else{c=legal.slice().sort((a,b)=>pv(a)-pv(b)||RVAL[a.r]-RVAL[b.r])[0];why='μπάζα χωρίς αξία — ξεφορτώσου χαμηλό/άχρηστο';}idx=st.hands[0].indexOf(c);}
+    const cc=st.hands[0][idx];return {msg:'Παίξε <b>'+cc.r+cc.s+'</b> — '+why+'.',sel:'#skHand .pc:nth-child('+(idx+1)+')'};};
   window._activeGame=st;log('Το δυνατότερο φύλλο του χρώματος μαζεύει τη μπάζα. Μάζεψε Άσσους & φιγούρες για πόντους!');render(true);
 };
 
@@ -2808,6 +2897,16 @@ GAME_ENGINES.bourlot=function(){
       <div class="log" id="boLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
     fx('');const lg=document.getElementById('boLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{
+    if(st.phase==='trump'){const b=bestSuitOf(st.hands[0]);return {msg:'Δυνατότερο χρώμα: <b>'+SUITNM[b.suit]+' '+b.suit+'</b>. Αγόρασέ το ΜΟΝΟ με J ή 9 ατού + στήριγμα· αλλιώς Πάσο.'};}
+    if(st.phase==='play'&&st.turn===0){const legal=legalFor(0);let idx,why;
+      if(st.plays.length===0){const c=legal.slice().sort((a,b)=>bval(b)-bval(a))[0];idx=st.hands[0].indexOf(c);why='άνοιξε δυνατά (τράβα ατού ή βγάλε άσσο)';}
+      else{const cw=bWinner(st.plays);const partnerWin=(teamOf(cw)===0)&&cw!==0;const winners=legal.filter(c=>bWinner([...st.plays,{p:0,c}])===0);let c;
+        if(partnerWin){c=legal.slice().sort((a,b)=>cardPts(b)-cardPts(a)||bval(a)-bval(b))[0];why='ο παρτενέρ κερδίζει — «φόρτωσε» πόντους (10/Α)';}
+        else if(winners.length){c=winners.sort((a,b)=>bval(a)-bval(b))[0];why='κέρδισε τη μπάζα με το φθηνότερο νικητήριο';}
+        else{c=legal.slice().sort((a,b)=>cardPts(a)-cardPts(b)||bval(a)-bval(b))[0];why='δεν κερδίζεις — ρίξε φύλλο χωρίς πόντους';}idx=st.hands[0].indexOf(c);}
+      const cc=st.hands[0][idx];return {msg:'Παίξε <b>'+cc.r+cc.s+'</b> — '+why+'.',sel:'#boHand .pc:nth-child('+(idx+1)+')'};}
+    return null;};
   window._activeGame=st;log('Belote: J>9>A ατού. Διάλεξε ατού· η ομάδα που αγοράζει θέλει ≥81 πόντους. (απλοποιημένοι κανόνες κοψίματος)');render(true);
 };
 
@@ -2896,6 +2995,14 @@ GAME_ENGINES.agonia=function(){
     host().insertAdjacentHTML('beforeend',`<div class="log" id="agLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`);
     const lg=document.getElementById('agLog');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{if(st.over)return null;if(st.phase==='choosesuit')return {msg:'Διάλεξε το χρώμα που έχεις τα <b>περισσότερα</b> φύλλα.'};if(st.cur!==0||st.phase!=='play')return null;
+    const idxs=st.hands[0].map((c,i)=>i).filter(i=>canPlay(st.hands[0][i]));
+    if(!idxs.length)return {msg:'Δεν έχεις τι να παίξεις — πάτησε <b>🂠 Τράβα</b>.'};
+    const nxt=(0+st.dir+4)%4;const threat=st.hands[nxt].length<=2;const sc={};st.hands[0].forEach(c=>sc[c.s]=(sc[c.s]||0)+1);
+    const score=(c)=>{if(c.r==='A')return threat?5:90;if(c.r==='7'||c.r==='8')return threat?0:30;return 50-(sc[c.s]||0)*2+RVAL[c.r]*0.1;};
+    idxs.sort((a,b)=>score(st.hands[0][a])-score(st.hands[0][b]));const i=idxs[0];const c=st.hands[0][i];
+    const eff=c.r==='7'?' (+2 στον επόμενο)':c.r==='8'?' (μπλόκο)':c.r==='A'?' (αλλαγή χρώματος)':c.r==='J'?' (αλλαγή φοράς)':'';
+    return {msg:'Παίξε <b>'+c.r+c.s+'</b>'+eff+(threat&&(c.r==='7'||c.r==='8'||c.r==='A')?' — ο επόμενος κοντεύει να βγει, χτύπα τον!':'')+'.',sel:'#agHand .pc:nth-child('+(i+1)+')'};};
   window._activeGame=st;log('Ξεφορτώσου όλα τα φύλλα! 7=+2, 8=μπλόκο, Άσσος=αλλαγή χρώματος, Βαλές=αλλαγή φοράς.');render(true);
 };
 
@@ -3046,6 +3153,11 @@ GAME_ENGINES.pastra=function(){
       <div class="log" id="paLog">${st.logs.slice(-40).map(x=>'<div>'+x+'</div>').join('')}</div>`;
     fx('');if(st.turn===0)host().querySelectorAll('.seat:last-of-type .pc').forEach((el,i)=>el.onclick=()=>play(0,i));
     const lg=document.getElementById('paLog');if(lg)lg.scrollTop=lg.scrollHeight;}
+  st.hint=()=>{if(st.turn!==0||st.over)return null;const hand=st.hands[0];let best=-1,bs=-1,bl=0;
+    hand.forEach((c,i)=>{const save=st.table.slice();const cap=capture(c);let sc=-1;if(cap){sc=100+cap.reduce((a,k)=>a+pointVal(st.table[k]),0)*10+cap.length+(cap.length===st.table.length?50:0);}st.table=save;if(sc>bs){bs=sc;best=i;bl=cap?cap.length:0;}});
+    if(bs>=0){const c=hand[best];return {msg:'Παίξε <b>'+c.r+c.s+'</b> → μάζεμα '+bl+' φύλλων'+(bl===st.table.length?' (καθαρίζεις το τραπέζι — <b>ΠΑΣΤΡΑ +1</b>!)':'')+'.',sel:'#tableHost .seat:last-of-type .pc:nth-child('+(best+1)+')'};}
+    let lo=0,lv=99;hand.forEach((c,i)=>{const v=numV(c)==null?11:numV(c);if(v<lv){lv=v;lo=i;}});const c=hand[lo];
+    return {msg:'Δεν υπάρχει μάζεμα — ρίξε <b>'+c.r+c.s+'</b> (χαμηλό, χωρίς πόντους).',sel:'#tableHost .seat:last-of-type .pc:nth-child('+(lo+1)+')'};};
   window._activeGame=st;log('Μάζεμα: ίδια αξία ή άθροισμα (π.χ. 7 = 5+2). Καθάρισε το τραπέζι → ΠΑΣΤΡΑ +1!');render(true);
 };
 
@@ -3272,6 +3384,11 @@ GAME_ENGINES.phase10=function(){
     if(st.turn===0&&st.drawn)host().querySelectorAll('#p10Hand .pc').forEach((el,i)=>el.onclick=()=>_p10Discard(i));
     const lg=document.getElementById('p10Log');if(lg)lg.scrollTop=lg.scrollHeight;
   }
+  st.hint=()=>{if(st.turn!==0||st.over)return null;const ph=st.phase[0];
+    if(!st.drawn){const top=st.discard[st.discard.length-1];if(top&&improves([...st.hands[0],top],ph))return {msg:'Τράβα από τα <b>καμένα</b> ('+(top.wild?'W':top.skip?'Skip':top.n)+') — βοηθά τη Φάση '+ph+'.'};return {msg:'Τράβα από την <b>κλειστή στοίβα</b>.'};}
+    if(canPhase(st.hands[0],ph))return {msg:'Το χέρι σου καλύπτει τη Φάση '+ph+' ('+PHASES[ph-1].d+') → πάτησε <b>🎉 Ολοκλήρωσε!</b> και μετά πέτα 1.'};
+    const di=worst(0);const c=st.hands[0][di];const nm=c.wild?'W':c.skip?'Skip':c.n;
+    return {msg:'Πέτα <b>'+nm+'</b> — άχρηστο για τη Φάση '+ph+' ('+PHASES[ph-1].d+').',sel:'#p10Hand .pc:nth-child('+(di+1)+')'};};
   window._activeGame=st;log('Φάση 1: 2 σετ των 3. Τράβα & πέτα ώστε το χέρι σου να καλύπτει τη φάση, μετά «Ολοκλήρωσε».');render();
 };
 
