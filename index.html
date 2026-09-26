@@ -160,6 +160,16 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
 @keyframes coachPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,178,58,.7)}50%{box-shadow:0 0 0 9px rgba(232,178,58,0)}}
 .pc.coach-hi{outline:3px solid var(--gold)!important;outline-offset:2px;animation:coachPulse 1.1s ease-in-out infinite;z-index:7}
 #coachBtn.on{background:linear-gradient(135deg,var(--gold),#b98718);border-color:var(--gold);color:#241a02}
+/* Mobile header: κράτα προσβάσιμα τα εικονίδια 🎵/⚙️ σε στενές οθόνες */
+@media(max-width:480px){
+  .hbar{gap:7px;padding:8px 10px}
+  .logo .mark{width:34px;height:34px;font-size:18px}
+  .logo b{font-size:15px}
+  .logo small{display:none}
+  .lvlchip{padding:5px 9px;font-size:11px;gap:5px}
+  #lvlName{display:none}
+  .icon-btn{width:34px;height:34px;font-size:17px;flex:0 0 auto}
+}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
