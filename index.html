@@ -195,6 +195,24 @@ body.hi-contrast .panel,body.hi-contrast .card,body.hi-contrast .seat{border-col
   body.big-cards .pc{--w:92px}
   body.big-cards .pc.lg{--w:116px}
 }
+/* TABLETS (≈1024×768 έως ~15") — μεγαλύτερα φύλλα & πλήρες πλάτος, portrait & landscape */
+@media (min-width:601px) and (max-width:1400px){
+  .wrap{max-width:100%}
+  .pc{--w:74px}
+  .pc.lg{--w:96px}
+  .pc.mini{--w:44px}
+  body.big-cards .pc{--w:90px}
+  body.big-cards .pc.lg{--w:116px}
+  body.big-cards .pc.mini{--w:54px}
+}
+/* Tablet σε landscape (π.χ. 1024×768, 1280×800, ~15") — ακόμη μεγαλύτερο τραπέζι */
+@media (min-width:900px) and (max-width:1400px) and (orientation:landscape){
+  .pc{--w:84px}
+  .pc.lg{--w:108px}
+  #tableHost .felt{padding:18px 22px}
+  body.big-cards .pc{--w:100px}
+  body.big-cards .pc.lg{--w:126px}
+}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
