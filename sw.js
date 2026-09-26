@@ -1,6 +1,6 @@
 /* ΤΡΑΠΟΥΛΑ 360° — service worker (offline cache) */
-const CACHE = 'trapoula360-v1';
-const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
+const CACHE = 'trapoula360-v2';
+const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-1024.jpg'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting()));
