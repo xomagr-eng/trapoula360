@@ -170,6 +170,31 @@ nav.bottom button.active .ic{filter:drop-shadow(0 0 8px rgba(226,36,43,.6))}
   #lvlName{display:none}
   .icon-btn{width:34px;height:34px;font-size:17px;flex:0 0 auto}
 }
+.fav-btn{cursor:pointer;font-size:16px;opacity:.9}
+.fav-btn:hover{opacity:1;text-shadow:0 0 8px var(--gold)}
+/* Μεγάλα φύλλα (accessibility) */
+body.big-cards .pc{--w:80px}
+body.big-cards .pc.lg{--w:104px}
+body.big-cards .pc.mini{--w:52px}
+body.big-cards .lesson{font-size:16.5px}
+/* Υψηλή αντίθεση */
+body.hi-contrast{--txt:#ffffff;--mut:#d6dde8;--mut2:#b3bccb}
+body.hi-contrast .sub{color:#c9d1dd}
+body.hi-contrast .pc{--cardink:#000;--cardred:#cc0000}
+body.hi-contrast .panel,body.hi-contrast .card,body.hi-contrast .seat{border-color:#5c6678}
+/* Landscape κινητού → μεγαλύτερο τραπέζι, αξιοποίηση πλάτους */
+.rot-hint{display:none}
+@media (orientation:portrait) and (max-width:600px){#view-table .rot-hint{display:inline-block}}
+@media (orientation:landscape) and (max-height:540px){
+  .wrap{padding:8px 12px}
+  header .hbar{padding:5px 12px}
+  #view-table .felt{padding:10px 14px}
+  .pc{--w:78px}
+  .pc.lg{--w:98px}
+  .pc.mini{--w:46px}
+  body.big-cards .pc{--w:92px}
+  body.big-cards .pc.lg{--w:116px}
+}
 
 .hand{display:flex;gap:6px;flex-wrap:wrap}
 .hand.tight{gap:-14px}
@@ -346,6 +371,7 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
       </div>
     </div>
 
+    <div id="homeQuick"></div>
     <div class="section-title"><h2>🗺️ Ο δρόμος προς το επαγγελματικό επίπεδο</h2><div class="line"></div></div>
     <div class="panel" id="roadmapBox"></div>
 
@@ -390,6 +416,8 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="btn ghost sm" onclick="quitGame()">← Έξοδος</button>
       <button class="btn sm" id="coachBtn" onclick="toggleCoach()">🎓 Προπονητής: OFF</button>
+      <button class="btn sm" onclick="toggleFullscreen()" title="Πλήρης οθόνη">⛶</button>
+      <span class="rot-hint sub">📱↻ Γύρισε οριζόντια για μεγαλύτερο τραπέζι</span>
     </div>
     <div id="coachPanel" class="coach-panel hidden"></div>
     <div id="tableHost" style="margin-top:12px"></div>
@@ -441,7 +469,7 @@ details.example .exbody .tip{display:block;margin-top:12px;color:var(--gold);bor
 
 /* ---------- STATE / PROGRESS ---------- */
 const LS='trapoula360_v1';
-const DEFAULT={xp:0, lessons:{}, puzzles:{}, ach:{}, games:{}, wins:{}, played:0, wins_total:0};
+const DEFAULT={xp:0, lessons:{}, puzzles:{}, ach:{}, games:{}, wins:{}, played:0, wins_total:0, fav:[], streak:0, lastDay:'', daily:'', seen:false};
 let S=load();
 var AILEVEL=2, HG_SPEED=1;                 // 0=easy 1=normal 2=hard ; HG_SPEED flips-per-sec multiplier
 function aiRnd(){return [0.32,0.15,0.04][AILEVEL]!=null?[0.32,0.15,0.04][AILEVEL]:0.04;}  // prob of a suboptimal move
@@ -1444,6 +1472,25 @@ function renderHome(){
   document.getElementById('stPuzzles').textContent=Object.values(S.puzzles).filter(Boolean).length;
   document.getElementById('stGames').textContent=S.played;
   document.getElementById('stWins').textContent=S.wins_total;
+  // Quick actions: τυχαίο, παιχνίδι ημέρας, σερί, αγαπημένα
+  const dg=GAMES.find(g=>g.id===dailyGameId());const doneToday=S.daily===today();
+  const favs=GAMES.filter(g=>S.fav.includes(g.id));
+  const inst=(typeof deferredPrompt!=='undefined'&&deferredPrompt)?`<button class="btn gold sm" onclick="doInstall()">📲 Εγκατάσταση εφαρμογής</button>`:'';
+  document.getElementById('homeQuick').innerHTML=`
+    <div class="grid g2" style="margin-top:14px">
+      <div class="card" style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px">🗓️</div>
+        <div style="flex:1"><b>Παιχνίδι της ημέρας</b><br><span class="sub">${dg.ic} ${dg.name} ${doneToday?'<span class="badge-done">✓ +25 XP</span>':'· +25 XP bonus!'}</span></div>
+        <button class="btn primary sm" onclick="startGame('${dg.id}')">▶ Παίξε</button>
+      </div>
+      <div class="card" style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:30px">🔥</div>
+        <div style="flex:1"><b>Σερί: ${S.streak||0} ${(S.streak===1)?'ημέρα':'ημέρες'}</b><br><span class="sub">Παίξε κάθε μέρα για να το κρατήσεις!</span></div>
+        <button class="btn sm" onclick="playRandom()">🎲 Τυχαίο</button>
+      </div>
+    </div>
+    ${favs.length?`<div class="section-title"><h2>⭐ Αγαπημένα</h2><div class="line"></div></div><div class="pill-row">${favs.map(g=>`<button class="btn sm" onclick="startGame('${g.id}')">${g.ic} ${g.name}</button>`).join('')}</div>`:''}
+    ${inst?`<div style="margin-top:12px;text-align:center">${inst} <span class="sub">📴 Παίζει και χωρίς ίντερνετ</span></div>`:''}`;
   // roadmap
   const steps=[
    {t:'Μάθε 3 παιχνίδια',done:Object.keys(S.lessons).length>=3},
@@ -1464,13 +1511,14 @@ function renderHome(){
 
 /* ---------- LEARN LIST ---------- */
 function renderGameList(){
-  document.getElementById('gameList').innerHTML=GAMES.map(g=>{
-    const done=S.lessons[g.id];
+  const sorted=[...GAMES].sort((a,b)=>(S.fav.includes(b.id)?1:0)-(S.fav.includes(a.id)?1:0));
+  document.getElementById('gameList').innerHTML=sorted.map(g=>{
+    const done=S.lessons[g.id];const fav=S.fav.includes(g.id);
     return `<div class="card gamecard" onclick="openLesson('${g.id}')">
       <span class="gcard-play" onclick="event.stopPropagation();openGuide('${g.id}')">▶ Πώς παίζεται</span>
       ${g.playable?'<span class="playable tag red">▶ Παίξιμο</span>':''}
       <div class="ic">${g.ic}</div>
-      <h3>${g.name} ${done?'<span class="badge-done">✓</span>':''}</h3>
+      <h3>${g.name} <span class="fav-btn" onclick="event.stopPropagation();toggleFav('${g.id}')" title="Αγαπημένο">${fav?'⭐':'☆'}</span> ${done?'<span class="badge-done">✓</span>':''}</h3>
       <p class="sub">${g.short}</p>
       <div class="meta"><span class="tag">${g.players} παίκτες</span><span class="tag">${g.deck}</span></div>
       <div class="meta">${g.tags.map(t=>`<span class="tag gold">${t}</span>`).join('')}</div>
@@ -1499,12 +1547,18 @@ function openLesson(id){
 
 /* ---------- PLAY LOBBY ---------- */
 function renderPlayList(){
-  document.getElementById('playList').innerHTML=GAMES.filter(g=>g.playable).map(g=>`
+  const pl=GAMES.filter(g=>g.playable).sort((a,b)=>(S.fav.includes(b.id)?1:0)-(S.fav.includes(a.id)?1:0));
+  document.getElementById('playList').innerHTML=`
+    <div class="card gamecard" onclick="playRandom()" style="border-color:var(--gold)">
+      <div class="ic">🎲</div><h3>Τυχαίο παιχνίδι</h3>
+      <p class="sub">Ρίξε με ένα κλικ σε τυχαίο παίξιμο.</p>
+      <div class="meta"><span class="tag gold">Έκπληξη!</span></div>
+    </div>`+pl.map(g=>{const fav=S.fav.includes(g.id);return `
     <div class="card gamecard" onclick="startGame('${g.id}')">
-      <div class="ic">${g.ic}</div><h3>${g.name}</h3>
+      <div class="ic">${g.ic}</div><h3>${g.name} <span class="fav-btn" onclick="event.stopPropagation();toggleFav('${g.id}')" title="Αγαπημένο">${fav?'⭐':'☆'}</span></h3>
       <p class="sub">${g.short}</p>
       <div class="meta"><span class="tag red">▶ Παίξε vs AI</span></div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 function clearAllTimers(){try{const hi=setTimeout(()=>{},0);for(let i=0;i<=hi;i++){clearTimeout(i);clearInterval(i);}}catch(e){}if(typeof MUSIC!=='undefined'&&MUSIC.isOn())MUSIC.rearm();if(typeof AMBIENCE!=='undefined'&&AMBIENCE.isOn())AMBIENCE.rearm();if(typeof COACH!=='undefined'&&COACH)ensureCoach();}
 function startGame(id){
@@ -1539,10 +1593,19 @@ function coachTick(){
     p.innerHTML='<b>🎓 Προπονητής:</b> <span class="sub">Περίμενε τη σειρά σου…</span>';return;}
   const tip=FALLTIP[curGameId];p.innerHTML='<b>🎓 Προπονητής:</b> '+(tip||'<span class="sub">Παίξε φυσιολογικά — δες τον Δάσκαλο για στρατηγική.</span>');
 }
+function today(){return new Date().toISOString().slice(0,10);}
+function dailyGameId(){const d=today();let h=0;for(const c of d)h=(h*31+c.charCodeAt(0))>>>0;const pl=GAMES.filter(g=>g.playable);return pl[h%pl.length].id;}
+function toggleFav(id){const i=S.fav.indexOf(id);if(i>=0)S.fav.splice(i,1);else S.fav.push(id);save();
+  ['learn','play','home'].forEach(v=>{if(!document.getElementById('view-'+v).classList.contains('hidden')){if(v==='learn')renderGameList();if(v==='play')renderPlayList();if(v==='home')renderHome();}});}
+function playRandom(){const pl=GAMES.filter(g=>g.playable);startGame(pl[Math.floor(Math.random()*pl.length)].id);}
+function toggleFullscreen(){try{if(!document.fullscreenElement){const el=document.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el);}else{(document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);}}catch(e){}}
 function recordGame(id,won){
+  const t=today();
+  if(S.lastDay!==t){const y=new Date(Date.now()-864e5).toISOString().slice(0,10);S.streak=(S.lastDay===y)?(S.streak||0)+1:1;S.lastDay=t;}
+  let bonus=0;if(won&&id===dailyGameId()&&S.daily!==t){S.daily=t;bonus=25;}
   S.played++;if(won)S.wins_total++;
   S.games[id]=(S.games[id]||0)+1;if(won)S.wins[id]=(S.wins[id]||0)+1;
-  save();if(won)SFX.win();addXP(won?40:15,won?'νίκη!':'παρτίδα');checkAch();
+  save();if(won)SFX.win();addXP((won?40:15)+bonus,bonus?'νίκη + 🗓️ πρόκληση ημέρας! +25':(won?'νίκη!':'παρτίδα'));checkAch();
 }
 
 /* ---------- TOAST ---------- */
@@ -3409,13 +3472,15 @@ const THEME_KEY='trapoula360_theme';
 const BACKS=[['','Κόκκινο'],['back-blue','Μπλε'],['back-green','Πράσινο'],['back-gold','Χρυσό'],['back-purple','Μωβ'],['back-plaid','Καρό']];
 const FELTS=[['','Μπορντό'],['felt-blue','Μπλε νύχτα'],['felt-green','Πράσινο'],['felt-charcoal','Ανθρακί'],['felt-purple','Μωβ']];
 const ACCENTS=[['','Κόκκινο'],['accent-gold','Χρυσό'],['accent-cyan','Κυανό'],['accent-purple','Μωβ']];
-let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true,haptics:true,music:false,musicVol:0.35,musicStyle:'kafeneio',ambience:false,musicRadio:false};
+let THEME={back:'',felt:'',accent:'',ai:2,hgSpeed:1,sound:true,haptics:true,music:false,musicVol:0.35,musicStyle:'kafeneio',ambience:false,musicRadio:false,bigCards:false,contrast:false};
 function loadTheme(){try{THEME=Object.assign(THEME,JSON.parse(localStorage.getItem(THEME_KEY)||'{}'));}catch(e){}applyTheme();}
 function applyTheme(){
   document.body.className='';
   if(THEME.back)document.body.classList.add(THEME.back);
   if(THEME.felt)document.body.classList.add(THEME.felt);
   if(THEME.accent)document.body.classList.add(THEME.accent);
+  if(THEME.bigCards)document.body.classList.add('big-cards');
+  if(THEME.contrast)document.body.classList.add('hi-contrast');
   AILEVEL=(THEME.ai==null?2:THEME.ai);
   HG_SPEED=(THEME.hgSpeed==null?1:THEME.hgSpeed);
 }
@@ -3455,6 +3520,9 @@ function openSettings(keep){
     <h4 style="color:var(--gold)">☕ Ήχοι καφενείου (ατμόσφαιρα)</h4>
     <p class="sub" style="margin:2px 0 6px">Μουρμουρητό κουβέντας &amp; κουδουνάκια φλιτζανιών.</p>
     <div class="pill-row">${[[true,'Ναι'],[false,'Όχι']].map(([val,nm])=>`<button class="btn sm ${(THEME.ambience===true)===val?'primary':'ghost'}" onclick="${val?'AMBIENCE.start()':'AMBIENCE.stop()'};openSettings(true);">${nm}</button>`).join('')}</div>
+    <h4 style="color:var(--gold)">♿ Προσβασιμότητα</h4>
+    <div class="pill-row"><span class="sub" style="align-self:center">🃏 Μεγάλα φύλλα:</span>${[[true,'Ναι'],[false,'Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.bigCards===true)===v?'primary':'ghost'}" onclick="setPref('bigCards',${v})">${nm}</button>`).join('')}</div>
+    <div class="pill-row" style="margin-top:6px"><span class="sub" style="align-self:center">🌗 Υψηλή αντίθεση:</span>${[[true,'Ναι'],[false,'Όχι']].map(([v,nm])=>`<button class="btn sm ${(THEME.contrast===true)===v?'primary':'ghost'}" onclick="setPref('contrast',${v})">${nm}</button>`).join('')}</div>
     <div class="divider"></div>
     <div id="installRow"></div>
     <p class="sub" style="margin-top:10px">💡 Η εφαρμογή αποθηκεύει την πρόοδό σου τοπικά στη συσκευή σου.</p>
@@ -3480,8 +3548,29 @@ if('serviceWorker' in navigator && location.protocol!=='file:'){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
 }
 
+/* ---------- ONBOARDING ---------- */
+function showWelcome(){
+  const m=document.createElement('div');m.className='modal-bg';m.id='welcomeModal';m.onclick=(e)=>{if(e.target===m)closeWelcome();};
+  m.innerHTML=`<div class="modal" onclick="event.stopPropagation()" style="max-width:440px;text-align:center">
+    <div style="font-size:46px">🃏</div>
+    <h2 style="margin:.15em 0">Καλώς ήρθες στην <span style="color:var(--gold)">ΤΡΑΠΟΥΛΑ 360°</span>!</h2>
+    <p class="sub">19 παιχνίδια τράπουλας με AI αντίπαλο, μαθήματα &amp; προπονητή.</p>
+    <div style="text-align:left;margin:14px 2px;line-height:2">
+      🃏 <b>Παίξε</b> εναντίον AI σε 19 παιχνίδια<br>
+      🎓 Άναψε τον <b>Προπονητή</b> για βοήθεια κίνηση-κίνηση<br>
+      📚 Μάθε κανόνες &amp; δες <b>▶ πώς παίζεται</b><br>
+      📴 Παίζει και <b>χωρίς ίντερνετ</b> — εγκατάστησέ το σαν εφαρμογή<br>
+      📱 Γύρισε το κινητό <b>οριζόντια</b> για μεγαλύτερο τραπέζι
+    </div>
+    <button class="btn primary" onclick="closeWelcome()" style="width:100%">Ξεκίνα! 🎉</button>
+  </div>`;
+  document.body.appendChild(m);
+}
+function closeWelcome(){S.seen=true;save();const m=document.getElementById('welcomeModal');if(m)m.remove();}
+
 /* ---------- INIT ---------- */
 loadTheme();refreshHeader();checkAch();go('home');
+if(!S.seen)setTimeout(showWelcome,350);
 // sound: human card plays (delegated) + resume audio on first gesture
 try{document.getElementById('tableHost').addEventListener('click',(e)=>{if(e.target&&e.target.closest&&e.target.closest('.pc'))SFX.card();},true);}catch(e){}
 ['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.resume();if(THEME.music){MUSIC.start();const mb=document.getElementById('musicBtn');if(mb)mb.style.color='var(--gold)';}if(THEME.ambience)AMBIENCE.start();},{once:true}));
